@@ -1,11 +1,11 @@
 {
-    "name": "Mafia companion",
-    "short_name": "Mafia companion",
+    "name": "TSM companion",
+    "short_name": "TSM companion",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Приложение-компаньон для турнирной (спортивной) Мафии",
+    "background_color": "#741114ff",
+    "theme_color": "#741114ff",
+    "description": "Приложение-компаньон для Ведущих ТСМ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

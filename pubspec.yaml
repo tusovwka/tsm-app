@@ -1,5 +1,5 @@
-name: mafia_companion
-description: A companion for Tournament Mafia game
+name: tsm_companion
+description: A companion for games in TSM
 publish_to: 'none'
 repository: https://github.com/evgfilim1/mafia-companion
 issue_tracker: https://github.com/evgfilim1/mafia-companion/issues
@@ -27,7 +27,7 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   http: ^1.2.0
-  intl: ^0.19.0
+  intl: ^0.20.0
   material_color_utilities: ^0.8.0
   meta: ^1.11.0
   package_info_plus: ^8.0.0

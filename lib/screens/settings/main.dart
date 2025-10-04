@@ -133,7 +133,7 @@ class SettingsScreen extends StatelessWidget {
                 context: context,
                 title: const Text("Сообщить о проблеме"),
                 content: const Text(
-                  "Для сообщения о проблеме нужно поделиться файлом мне в ЛС в Telegram.",
+                  "Для сообщения о проблеме нужно поделиться файлом мне в ЛС в Telegram - @pontlif",
                 ),
                 extraActions: [
                   TextButton(
@@ -175,7 +175,7 @@ class SettingsScreen extends StatelessWidget {
                     TextSpan(
                       children: [
                         const TextSpan(
-                          text: "Приложение-компаньон для ведущего спортивной (турнирной) Мафии."
+                          text: "Приложение-компаньон для Ведущих ТСМ"
                               "\n\n",
                         ),
                         const TextSpan(text: "Лицензировано под "),
@@ -196,7 +196,7 @@ class SettingsScreen extends StatelessWidget {
                           recognizer: TapGestureRecognizer()
                             ..onTap = () => launchUrlOrCopy(
                                   context,
-                                  "https://github.com/evgfilim1/mafia-companion",
+                                  "https://github.com/tusovwka/tsm-companion",
                                 ),
                         ),
                         const TextSpan(text: "."),
