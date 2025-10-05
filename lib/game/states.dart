@@ -690,7 +690,7 @@ const timeLimits = <GameStage, Duration>{
 };
 
 const timeLimitsExtended = <GameStage, Duration>{
-  GameStage.firstNight: Duration(minutes: 1, second: 45),
+  GameStage.firstNight: Duration(minutes: 1, seconds: 45),
   GameStage.speaking: Duration(minutes: 1, seconds: 15),
   GameStage.excuse: Duration(minutes: 45),
   GameStage.dayLastWords: Duration(minutes: 1, seconds: 15),
