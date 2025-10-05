@@ -73,10 +73,18 @@ class SettingsScreen extends StatelessWidget {
             title: const Text("Внешний вид"),
             onTap: () => openSettingsPage(context, SettingsSubpage.appearance),
           ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text("Поведение"),
-            onTap: () => openSettingsPage(context, SettingsSubpage.behavior),
+          ChoiceListTile(
+            leading: const Icon(Icons.timer),
+            title: const Text("Режим таймера"),
+            items: TimerType.values,
+            itemToString: (item) => switch (item) {
+              TimerType.shortened => "Сокращённый",
+              TimerType.strict => "Строгий",
+              TimerType.extended => "Увеличенный",
+              TimerType.disabled => "Отключен",
+            },
+            index: settings.timerType.index,
+            onChanged: settings.setTimerType,
           ),
           if (kIsDev || kEnableDebugMenu)
             ListTile(
