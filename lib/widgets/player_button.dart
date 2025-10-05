@@ -51,7 +51,7 @@ class BasicPlayerButton extends StatelessWidget {
       return Colors.green;
     }
     if (!isAlive) {
-      return Colors.red;
+      return Colors.white;
     }
     return null;
   }
