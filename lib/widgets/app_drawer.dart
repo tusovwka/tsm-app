@@ -33,10 +33,10 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.format_list_numbered),
-            title: const Text("Официальные правила ФИИМ"),
+            title: const Text("Правила ТСМ"),
             onTap: () {
               Navigator.pop(context);
-              launchUrlOrCopy(context, "https://mafiaworldtour.com/fiim-rules");
+              launchUrlOrCopy(context, "https://mafia.tusovwka.ru/docs/rules");
             },
           ),
           ListTile(

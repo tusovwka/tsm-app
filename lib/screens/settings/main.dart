@@ -167,7 +167,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               applicationName: packageInfo.appName,
               applicationVersion: "$appVersion build ${packageInfo.buildNumber}",
-              applicationLegalese: "© 2023–2024 Евгений Филимонов",
+              applicationLegalese: "© Создано Евгением Филимоновом, Модифицировано Тихоненко Глебом",
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -189,7 +189,7 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                         ),
                         const TextSpan(text: ".\n"),
-                        const TextSpan(text: "Исходный код опубликован на "),
+                        const TextSpan(text: "Код опубликован на "),
                         TextSpan(
                           text: "GitHub",
                           style: const TextStyle(color: Colors.blue),
@@ -200,6 +200,16 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                         ),
                         const TextSpan(text: "."),
+                        const TextSpan(text: "Изначальный код опубликован на "),
+                        TextSpan(
+                          text: "GitHub",
+                          style: const TextStyle(color: Colors.blue),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => launchUrlOrCopy(
+                                  context,
+                                  "https://github.com/evgfilim1/mafia-companion",
+                                ),
+                        ),
                       ],
                     ),
                   ),
