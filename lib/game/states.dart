@@ -671,7 +671,7 @@ class GameStateFinish extends BaseGameState {
 
 const timeLimits = <GameStage, Duration>{
   // GameStage.prepare: null,
-  GameStage.firstNight: Duration(minutes: 1),
+  GameStage.firstNight: Duration(minutes: 1, seconds: 15),
   GameStage.firstNightWakeUps: Duration(seconds: 20),
   GameStage.firstNightRest: Duration(seconds: 30),
   GameStage.speaking: Duration(minutes: 1),
@@ -690,25 +690,25 @@ const timeLimits = <GameStage, Duration>{
 };
 
 const timeLimitsExtended = <GameStage, Duration>{
-  GameStage.firstNight: Duration(minutes: 2),
-  GameStage.speaking: Duration(minutes: 1, seconds: 30),
-  GameStage.excuse: Duration(minutes: 1),
-  GameStage.dayLastWords: Duration(minutes: 1, seconds: 30),
-  GameStage.nightCheck: Duration(seconds: 30),
-  GameStage.bestTurn: Duration(seconds: 40),
-  GameStage.nightLastWords: Duration(minutes: 1, seconds: 30),
+  GameStage.firstNight: Duration(minutes: 1, second: 45),
+  GameStage.speaking: Duration(minutes: 1, seconds: 15),
+  GameStage.excuse: Duration(minutes: 45),
+  GameStage.dayLastWords: Duration(minutes: 1, seconds: 15),
+  GameStage.nightCheck: Duration(seconds: 15),
+  GameStage.bestTurn: Duration(seconds: 30),
+  GameStage.nightLastWords: Duration(minutes: 1, seconds: 15),
 };
 
 const timeLimitsShortened = <GameStage, Duration>{
-  GameStage.firstNight: Duration(seconds: 30),
+  GameStage.firstNight: Duration(seconds: 45),
   GameStage.firstNightWakeUps: Duration(seconds: 10),
-  GameStage.firstNightRest: Duration(seconds: 15),
-  GameStage.speaking: Duration(seconds: 30),
-  GameStage.excuse: Duration(seconds: 15),
-  GameStage.dayLastWords: Duration(seconds: 30),
-  GameStage.nightCheck: Duration(seconds: 6),
-  GameStage.bestTurn: Duration(seconds: 10),
-  GameStage.nightLastWords: Duration(seconds: 30),
+  GameStage.firstNightRest: Duration(seconds: 20),
+  GameStage.speaking: Duration(seconds: 40),
+  GameStage.excuse: Duration(seconds: 20),
+  GameStage.dayLastWords: Duration(seconds: 40),
+  GameStage.nightCheck: Duration(seconds: 8),
+  GameStage.bestTurn: Duration(seconds: 15),
+  GameStage.nightLastWords: Duration(seconds: 40),
 };
 
 const validTransitions = <GameStage, Set<GameStage>>{
