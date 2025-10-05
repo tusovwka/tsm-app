@@ -162,13 +162,6 @@ class Game {
           playerNumbers: players.mafiaTeam.map((player) => player.number).toUnmodifiableList(),
         );
       case GameStateWithPlayers(stage: GameStage.firstNight):
-        return GameStateWithPlayer(
-          stage: GameStage.firstNightWakeUps,
-          day: 1,
-          playerStates: state.playerStates,
-          currentPlayerNumber: players.sheriff.number,
-        );
-      case GameStateWithPlayer(stage: GameStage.firstNightWakeUps):
         return GameStateNightRest(playerStates: state.playerStates);
       case GameStateNightRest():
         final next = _nextAlivePlayer(fromNumber: 0);
