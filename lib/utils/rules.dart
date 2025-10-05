@@ -9,7 +9,7 @@ enum _Keys {
 }
 
 final defaults = GameRulesModel(
-  alwaysContinueVoting: false,
+  alwaysContinueVoting: true,
 );
 
 class GameRulesModel with ChangeNotifier {
