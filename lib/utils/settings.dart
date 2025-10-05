@@ -6,7 +6,6 @@ import "extensions.dart";
 enum TimerType {
   shortened,
   strict,
-  plus5,
   extended,
   disabled,
 }
