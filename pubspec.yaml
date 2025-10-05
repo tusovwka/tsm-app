@@ -1,4 +1,4 @@
-name: tsm_companion
+name: tsm_app
 description: A companion for games in TSM
 publish_to: 'none'
 repository: https://github.com/evgfilim1/mafia-companion

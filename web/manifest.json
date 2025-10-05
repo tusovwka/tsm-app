@@ -1,11 +1,11 @@
 {
-    "name": "TSM companion",
-    "short_name": "TSM companion",
+    "name": "TSM app",
+    "short_name": "TSM app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#741114ff",
     "theme_color": "#741114ff",
-    "description": "Приложение-компаньон для Ведущих ТСМ",
+    "description": "Приложение для Ведущих ТСМ",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -175,7 +175,7 @@ class SettingsScreen extends StatelessWidget {
                     TextSpan(
                       children: [
                         const TextSpan(
-                          text: "Приложение-компаньон для Ведущих ТСМ"
+                          text: "Приложение для Ведущих ТСМ"
                               "\n\n",
                         ),
                         const TextSpan(text: "Лицензировано под "),
