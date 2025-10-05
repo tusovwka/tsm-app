@@ -93,7 +93,7 @@ class _MainScreenState extends State<MainScreen> {
         appBar: AppBar(
           title: controller.isGameActive
               ? Text("День ${controller.state.day}")
-              : Text(packageInfo.appName),
+              : Text("Ведущий ТСМ"),
           leading: Builder(
             builder: (context) => IconButton(
               onPressed: () => Scaffold.of(context).openDrawer(),

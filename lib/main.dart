@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
     final settings = context.watch<SettingsModel>();
     return BrightnessAwareColorSchemeBuilder(
       builder: (colorScheme) => MaterialApp(
-        title: "TSM app",
+        title: "Ведущий ТСМ",
         theme: ThemeData(
           colorScheme: colorScheme.light,
           useMaterial3: true,
