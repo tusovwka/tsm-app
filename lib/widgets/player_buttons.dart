@@ -146,7 +146,7 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       if (p.role == PlayerRole.don) {
         msg = result ? "ШЕРИФ" : "НЕ шериф";
       } else if (p.role == PlayerRole.sheriff) {
-        msg = result ? "МАФИЯ 👎" : "НЕ мафия 👍";
+        msg = result ? "МАФИЯ 👎 ⚫️" : "НЕ мафия 👍 🔴";
       } else {
         throw AssertionError();
       }
