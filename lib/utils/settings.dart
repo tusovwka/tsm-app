@@ -74,8 +74,6 @@ Future<SettingsModel> getSettings() async {
       timerType = TimerType.shortened;
     case "strict":
       timerType = TimerType.strict;
-    case "plus5":
-      timerType = TimerType.plus5;
     case "extended":
       timerType = TimerType.extended;
     case "disabled":
