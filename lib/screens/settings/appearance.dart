@@ -61,23 +61,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
             index: settings.themeMode.index,
             onChanged: settings.setThemeMode,
           ),
-          ChoiceListTile(
-            enabled: dynamicColorUnavailableReason == null,
-            leading: const Icon(Icons.color_lens),
-            title: const Text("Цветовая схема"),
-            subtitle: dynamicColorUnavailableReason != null
-                ? Text("Недоступно $dynamicColorUnavailableReason")
-                : null,
-            items: ColorSchemeType.values,
-            itemToString: (item) => switch (item) {
-              ColorSchemeType.system => "Системная",
-              ColorSchemeType.custom => "Пользовательская",
-            },
-            index: dynamicColorUnavailableReason == null
-                ? settings.colorSchemeType.index
-                : ColorSchemeType.custom.index,
-            onChanged: settings.setColorSchemeType,
-          ),
           ListTile(
             enabled: canSelectSeedColor,
             leading: Icon(
