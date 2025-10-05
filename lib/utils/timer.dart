@@ -90,13 +90,11 @@ class TimerService with ChangeNotifier {
     final gameState = _controller.state;
     var timeLimit = switch (_settings.timerType) {
       TimerType.disabled => null,
-      TimerType.strict || TimerType.plus5 => timeLimits[gameState.stage],
+      TimerType.strict => timeLimits[gameState.stage],
       TimerType.extended => timeLimitsExtended[gameState.stage] ?? timeLimits[gameState.stage],
       TimerType.shortened => timeLimitsShortened[gameState.stage] ?? timeLimits[gameState.stage],
     };
-    if (_settings.timerType == TimerType.plus5 && timeLimit != null) {
-      timeLimit += const Duration(seconds: 5);
-    }
+    
     if (gameState is GameStateSpeaking && gameState.hasHalfTime && timeLimit != null) {
       timeLimit ~/= 2;
     }
