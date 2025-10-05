@@ -78,46 +78,12 @@ class SettingsScreen extends StatelessWidget {
             title: const Text("Поведение"),
             onTap: () => openSettingsPage(context, SettingsSubpage.behavior),
           ),
-          ListTile(
-            leading: const Icon(Icons.rule),
-            title: const Text("Правила игры"),
-            onTap: () async {
-              if (controller.isGameInitialized) {
-                await showSimpleDialog(
-                  context: context,
-                  title: const Text("Предупреждение"),
-                  content: const Text(
-                    "Чтобы изменения в правилах вступили в силу, необходим перезапуск игры.",
-                  ),
-                  rememberKey: "rulesChangeRequireRestart",
-                );
-              }
-              if (!context.mounted) {
-                throw ContextNotMountedError();
-              }
-              await openSettingsPage(context, SettingsSubpage.rules);
-            },
-          ),
           if (kIsDev || kEnableDebugMenu)
             ListTile(
               leading: const Icon(Icons.bug_report),
               title: const Text("Меню отладки"),
               onTap: () => openDebugMenuPage(context),
             ),
-          ListTile(
-            enabled: updaterUnavailableReason == null,
-            leading: const Icon(Icons.refresh),
-            title: const Text("Проверить обновления"),
-            subtitle: Text(
-              updaterUnavailableReason != null
-                  ? "Недоступно $updaterUnavailableReason"
-                  : checker.hasUpdate
-                      ? "Доступна новая версия v${checker.updateInfo!.version}"
-                      : "Обновлений нет",
-            ),
-            trailing: checker.hasUpdate ? const NotificationDot(size: 8) : null,
-            onTap: () => _checkForUpdates(context),
-          ),
           ListTile(
             leading: const Icon(Icons.bug_report),
             title: const Text("Сообщить о проблеме"),
