@@ -126,7 +126,7 @@ class PlayerButton extends StatelessWidget {
           content: Text(
             "Номер игрока: ${player.number}\n"
             "Состояние: $isAliveText\n"
-            "Роль: ${player.role.prettyName}\n"
+            // "Роль: ${player.role.prettyName}\n"
             "Фолов: ${player.state.warns}",
           ),
           actions: [
@@ -183,7 +183,7 @@ class PlayerButton extends StatelessWidget {
       case PlayerRole.mafia:
         return "М";
       case PlayerRole.don:
-        return "ДМ";
+        return "Д";
       case PlayerRole.sheriff:
         return "Ш";
       case PlayerRole.citizen:
