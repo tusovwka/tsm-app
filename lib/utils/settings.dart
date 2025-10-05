@@ -41,7 +41,7 @@ final defaults = SettingsModel(
   colorSchemeType: ColorSchemeType.system,
   checkUpdatesType: CheckUpdatesType.onLaunch,
   seedColor: Colors.purple,
-  vibrationDuration: VibrationDuration.medium,
+  vibrationDuration: VibrationDuration.disabled,
   rememberedChoices: {},
 );
 

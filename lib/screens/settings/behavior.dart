@@ -30,55 +30,11 @@ class _BehaviorSettingsScreenState extends State<BehaviorSettingsScreen> {
             itemToString: (item) => switch (item) {
               TimerType.shortened => "Сокращённый",
               TimerType.strict => "Строгий",
-              TimerType.plus5 => "+5 секунд",
               TimerType.extended => "Увеличенный",
               TimerType.disabled => "Отключен",
             },
             index: settings.timerType.index,
             onChanged: settings.setTimerType,
-          ),
-          ChoiceListTile(
-            leading: const Icon(Icons.vibration),
-            title: const Text("Длительность вибрации"),
-            items: VibrationDuration.values,
-            itemToString: (item) => switch (item) {
-              VibrationDuration.disabled => "Отключена",
-              VibrationDuration.xShort => "Очень короткая",
-              VibrationDuration.short => "Короткая",
-              VibrationDuration.medium => "Средняя",
-              VibrationDuration.long => "Длинная",
-              VibrationDuration.xLong => "Очень длинная",
-            },
-            index: settings.vibrationDuration.index,
-            onChanged: (length) {
-              settings.setVibrationDuration(length);
-              if (length != VibrationDuration.disabled) {
-                Vibration.vibrate(duration: length.milliseconds);
-              }
-            },
-          ),
-          ChoiceListTile(
-            leading: const Icon(Icons.update),
-            title: const Text("Проверка обновлений"),
-            items: CheckUpdatesType.values,
-            itemToString: (item) => switch (item) {
-              CheckUpdatesType.onLaunch => "При запуске",
-              CheckUpdatesType.manually => "Вручную",
-            },
-            index: settings.checkUpdatesType.index,
-            onChanged: settings.setCheckUpdatesType,
-          ),
-          ConfirmationListTile(
-            leading: const Icon(Icons.visibility),
-            title: const Text("Показать скрытые диалоги"),
-            confirmationContent: const Text(
-              "Это действие сбросит все сохранённые выборы и покажет все диалоги, которые были"
-              " скрыты. Продолжить?",
-            ),
-            onConfirm: () {
-              settings.forgetRememberedChoices();
-              showSnackBar(context, const SnackBar(content: Text("Скрытые диалоги восстановлены")));
-            },
           ),
         ],
       ),
