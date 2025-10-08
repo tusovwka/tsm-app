@@ -17,6 +17,7 @@ import "../../utils/navigation.dart";
 import "../../utils/ui.dart";
 import "../../utils/updates_checker.dart";
 import "../../widgets/notification_dot.dart";
+import "../../widgets/list_tiles/choice.dart";
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
