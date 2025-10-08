@@ -1,6 +1,6 @@
 {
-    "name": "Ведущий ТСМ",
-    "short_name": "Ведущий ТСМ",
+    "name": "TSM app",
+    "short_name": "TSM app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#741114ff",
