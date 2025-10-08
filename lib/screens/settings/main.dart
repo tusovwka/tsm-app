@@ -65,6 +65,7 @@ class SettingsScreen extends StatelessWidget {
                 ? "при разработке"
                 : null;
     final accentColor = Theme.of(context).colorScheme.primary;
+    final settings = context.watch<SettingsModel>();
 
     return Scaffold(
       appBar: AppBar(title: const Text("Настройки")),
