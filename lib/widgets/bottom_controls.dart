@@ -72,7 +72,14 @@ class GameBottomControlBar extends StatelessWidget {
         foundSheriff: player.role == PlayerRole.don && foundSheriff,
         wasKilledFirstNight: bestTurn?.currentPlayerNumber == player.number,
       );
-      newPlayers[key] = pws.copyWith(stats: newStats);
+      // Обновляем также данные игрока, включая memberId
+      final updatedPlayer = pws.player.copyWith(
+        nickname: player.nickname ?? pws.player.nickname,
+        realName: pws.player.realName,
+        // Сохраняем memberId из текущего игрока или используем значение из БД
+        memberId: player.memberId ?? pws.player.memberId,
+      );
+      newPlayers[key] = PlayerWithStats(updatedPlayer, newStats);
     }
     await playersContainer.putAllWithStats(newPlayers);
     if (!context.mounted) {
