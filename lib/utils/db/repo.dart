@@ -42,7 +42,7 @@ class PlayerRepo with ChangeNotifier {
         .values
         .map(
           (p) => PlayerWithStats(
-            p.copyWith(), // remove leftover `stats` field
+            p.copyWith(memberId: null), // remove leftover `stats` field
             p.stats, // ignore: deprecated_member_use_from_same_package
           ),
         )
