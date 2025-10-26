@@ -17,7 +17,6 @@ import "../widgets/bottom_controls.dart";
 import "../widgets/confirm_pop_scope.dart";
 import "../widgets/confirmation_dialog.dart";
 import "../widgets/game_state.dart";
-import "../widgets/notes_menu_item_button.dart";
 import "../widgets/notification_dot.dart";
 import "../widgets/player_buttons.dart";
 import "../widgets/restart_game_icon_button.dart";
