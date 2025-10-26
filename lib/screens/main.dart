@@ -6,6 +6,7 @@ import "package:flutter/services.dart";
 import "package:package_info_plus/package_info_plus.dart";
 import "package:provider/provider.dart";
 
+import "../utils/db/repo.dart";
 import "../utils/game_controller.dart";
 import "../utils/misc.dart";
 import "../utils/navigation.dart";
@@ -35,6 +36,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     unawaited(_checkForUpdates());
+    unawaited(_syncPlayersWithApi());
     super.initState();
   }
 
@@ -69,6 +71,28 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _syncPlayersWithApi() async {
+    try {
+      final players = context.read<PlayerRepo>();
+      final isApiAvailable = await players.isApiAvailable();
+      if (isApiAvailable) {
+        await players.syncWithApi();
+        if (mounted) {
+          showSnackBar(
+            context,
+            const SnackBar(
+              content: Text("Игроки синхронизированы с API"),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Не показываем ошибку пользователю при автоматической синхронизации
+      // Логирование уже происходит в PlayerRepo
+    }
   }
 
   void _resetWarnMode() => setState(() => _warnMode = false);
