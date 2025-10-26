@@ -6,6 +6,7 @@ import "../utils/db/repo.dart";
 import "../utils/log.dart";
 import "../utils/navigation.dart";
 import "../utils/ui.dart";
+import "../widgets/confirmation_dialog.dart";
 
 
 class _PlayerTile extends StatelessWidget {
@@ -91,9 +92,9 @@ class PlayersScreen extends StatelessWidget {
   Future<void> _onLoadFromApiPressed(BuildContext context, PlayerRepo players) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => const ConfirmationDialog(
-        title: Text("Загрузить игроков из API?"),
-        content: Text("Это заменит всех текущих игроков данными из API."),
+      builder: (context) => ConfirmationDialog(
+        title: const Text("Загрузить игроков из API?"),
+        content: const Text("Это заменит всех текущих игроков данными из API."),
       ),
     );
     if (confirmed ?? false) {
@@ -125,9 +126,9 @@ class PlayersScreen extends StatelessWidget {
   Future<void> _onClearPressed(BuildContext context, PlayerRepo players) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => const ConfirmationDialog(
-        title: Text("Удалить всех игроков?"),
-        content: Text("Вы уверены, что хотите удалить всех игроков?"),
+      builder: (context) => ConfirmationDialog(
+        title: const Text("Удалить всех игроков?"),
+        content: const Text("Вы уверены, что хотите удалить всех игроков?"),
       ),
     );
     if (confirmed ?? false) {
