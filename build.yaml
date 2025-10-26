@@ -1,0 +1,17 @@
+targets:
+  $default:
+    builders:
+      hive_generator:
+        enabled: true
+        options:
+          generate_field_keys: true
+      json_serializable:
+        enabled: false
+      mockito:
+        enabled: false
+    sources:
+      exclude:
+        - "**/*.g.dart"
+        - "**/*.freezed.dart"
+        - "test/**"
+        - "**/*_test.dart"
