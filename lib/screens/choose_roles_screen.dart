@@ -237,17 +237,17 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     setState(() {
       // Если колода пустая, создаем новую
       if (_deckRoles.isEmpty) {
-        // Создаем колоду: 1 шериф, 1 дон, 2 мафии, 6 мирных жителей
-        _deckRoles.addAll([
-          PlayerRole.sheriff,
-          PlayerRole.don,
-          PlayerRole.mafia,
-          PlayerRole.mafia,
-          ...List.filled(6, PlayerRole.citizen),
-        ]);
-        // Сбрасываем назначенные роли и текущего игрока
-        _assignedRoles.fillRange(0, _assignedRoles.length, null);
-        _currentPlayerIndex = 0;
+      // Создаем колоду: 1 шериф, 1 дон, 2 мафии, 6 мирных жителей
+      _deckRoles.addAll([
+        PlayerRole.sheriff,
+        PlayerRole.don,
+        PlayerRole.mafia,
+        PlayerRole.mafia,
+        ...List.filled(6, PlayerRole.citizen),
+      ]);
+      // Сбрасываем назначенные роли и текущего игрока
+      _assignedRoles.fillRange(0, _assignedRoles.length, null);
+      _currentPlayerIndex = 0;
       }
       // Перемешиваем текущую колоду
       _deckRoles.shuffle(Random());
@@ -354,7 +354,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   Widget _buildDeckMode(PlayerRepo players) {
     return Row(
-      children: [
+        children: [
         // Колонка с игроками
         Expanded(
           flex: 2,
@@ -364,7 +364,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var i = 0; i < 10; i++)
-                  Padding(
+                Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
@@ -373,13 +373,13 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               DropdownMenu(
-                                expandedInsets: EdgeInsets.zero,
-                                enableFilter: true,
-                                enableSearch: true,
+                    expandedInsets: EdgeInsets.zero,
+                    enableFilter: true,
+                    enableSearch: true,
                                 menuHeight: 256,
-                                label: Text("Игрок ${i + 1}"),
+                    label: Text("Игрок ${i + 1}"),
                                 inputDecorationTheme: InputDecorationTheme(
-                                  isDense: true,
+                      isDense: true,
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
                                       color: _currentPlayerIndex == i && _assignedRoles[i] == null
@@ -396,26 +396,26 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                                       : _currentPlayerIndex == i && _assignedRoles[i] == null
                                           ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
                                           : null,
-                                ),
-                                requestFocusOnTap: true,
-                                initialSelection: _chosenNicknames[i],
-                                dropdownMenuEntries: [
-                                  const DropdownMenuEntry(
-                                    value: null,
-                                    label: "",
-                                    labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
-                                  ),
-                                  for (final nickname in players.data
-                                      .map((p) => p.$2.nickname)
-                                      .toList(growable: false)..sort())
-                                    DropdownMenuEntry(
-                                      value: nickname,
-                                      label: nickname,
-                                      enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
-                                    ),
-                                ],
-                                onSelected: (value) => _onNicknameSelected(i, value),
-                              ),
+                    ),
+                    requestFocusOnTap: true,
+                    initialSelection: _chosenNicknames[i],
+                    dropdownMenuEntries: [
+                      const DropdownMenuEntry(
+                        value: null,
+                        label: "",
+                        labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+                      ),
+                      for (final nickname in players.data
+                          .map((p) => p.$2.nickname)
+                          .toList(growable: false)..sort())
+                        DropdownMenuEntry(
+                          value: nickname,
+                          label: nickname,
+                          enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
+                        ),
+                    ],
+                    onSelected: (value) => _onNicknameSelected(i, value),
+                  ),
                               if (_assignedRoles[i] != null)
                                 Padding(
                                   padding: const EdgeInsets.only(left: 12, top: 4),
@@ -493,6 +493,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   Widget _buildDeckRoleCard(int index, PlayerRole role) {
     final isSelectable = _currentPlayerIndex < rolesList.length;
+    final isMobile = MediaQuery.of(context).size.width < 600;
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -502,7 +503,10 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
           onTap: isSelectable ? () => _onDeckRoleSelected(role) : null,
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 10 : 16,
+              vertical: isMobile ? 10 : 16,
+            ),
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelectable
@@ -519,8 +523,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
               children: [
                 // Номер
                 Container(
-                  width: 24,
-                  height: 24,
+                  width: isMobile ? 24 : 32,
+                  height: isMobile ? 24 : 32,
                   decoration: BoxDecoration(
                     color: isSelectable
                         ? Theme.of(context).colorScheme.primary
@@ -532,7 +536,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                       "${index + 1}",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: isMobile ? 12 : 14,
                         color: isSelectable
                             ? Theme.of(context).colorScheme.onPrimary
                             : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -540,17 +544,33 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                // Сокращение роли
-                Text(
-                  _getRoleDisplay(role),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isSelectable
-                        ? Theme.of(context).colorScheme.onPrimaryContainer
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                SizedBox(width: isMobile ? 10 : 16),
+                // Название роли (полное или сокращение)
+                Expanded(
+                  child: Text(
+                    isMobile ? _getRoleDisplay(role) : role.prettyName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isSelectable
+                          ? Theme.of(context).colorScheme.onPrimaryContainer
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
+                // Сокращение для ПК
+                if (!isMobile)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Text(
+                      _getRoleDisplay(role),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isSelectable
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
