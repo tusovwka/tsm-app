@@ -78,7 +78,7 @@ class TusovwkaApiClient {
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
+        final List<dynamic> jsonList = json.decode(utf8.decode(response.bodyBytes));
         final players = jsonList
             .map((json) => TusovwkaPlayer.fromJson(json as Map<String, dynamic>))
             .toList();
