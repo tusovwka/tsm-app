@@ -171,6 +171,7 @@ class PlayerRepo with ChangeNotifier {
   }
 
   /// Синхронизирует локальных игроков с API
+  /// Удаляет игроков без memberId, обновляет существующих и добавляет новых
   /// Возвращает количество обновленных игроков
   Future<int> syncWithApi() async {
     try {
@@ -179,9 +180,35 @@ class PlayerRepo with ChangeNotifier {
       
       int updatedCount = 0;
       final localPlayers = _box.toMap();
+      final localStats = _statsBox.toMap();
+      
+      // Создаем список API никнеймов для быстрого поиска
+      final apiNicknames = apiPlayers.map((p) => p.nickname).toSet();
+      
+      // Удаляем локальных игроков, которых нет в API или у которых нет memberId
+      final playersToDelete = <String>[];
+      for (final entry in localPlayers.entries) {
+        final localPlayer = entry.value;
+        final isInApi = apiNicknames.contains(localPlayer.nickname);
+        final hasMemberId = localPlayer.memberId != null;
+        
+        if (!isInApi || !hasMemberId) {
+          playersToDelete.add(entry.key as String);
+          _log.info("Marking player for deletion: ${localPlayer.nickname} (inApi: $isInApi, hasMemberId: $hasMemberId)");
+        }
+      }
+      
+      // Удаляем помеченных игроков
+      for (final playerId in playersToDelete) {
+        await _box.delete(playerId);
+        await _statsBox.delete(playerId);
+        updatedCount++;
+      }
       
       // Обновляем member_id для существующих игроков
       for (final entry in localPlayers.entries) {
+        if (playersToDelete.contains(entry.key)) continue; // Пропускаем удаленных
+        
         final localPlayer = entry.value;
         final apiPlayer = apiPlayers.firstWhere(
           (p) => p.nickname == localPlayer.nickname,
@@ -224,6 +251,7 @@ class PlayerRepo with ChangeNotifier {
   }
 
   /// Загружает игроков только из API (заменяет локальных)
+  /// Загружает только игроков с memberId
   Future<void> loadFromApi() async {
     try {
       _log.info("Loading players from API...");
@@ -231,7 +259,10 @@ class PlayerRepo with ChangeNotifier {
       
       await clear();
       
-      final playersWithStats = apiPlayers.map((apiPlayer) => PlayerWithStats(
+      // Фильтруем только игроков с memberId
+      final playersWithMemberId = apiPlayers.where((p) => p.memberId != null).toList();
+      
+      final playersWithStats = playersWithMemberId.map((apiPlayer) => PlayerWithStats(
         Player(
           nickname: apiPlayer.nickname,
           realName: "", // API не предоставляет реальное имя
@@ -241,7 +272,7 @@ class PlayerRepo with ChangeNotifier {
       ));
       
       await addAllWithStats(playersWithStats);
-      _log.info("Loaded ${apiPlayers.length} players from API");
+      _log.info("Loaded ${playersWithMemberId.length} players from API (filtered by memberId)");
     } catch (e) {
       _log.error("Failed to load players from API: $e");
       rethrow;

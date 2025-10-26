@@ -278,7 +278,6 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
       ),
       for (final nickname in players.data
-          .where((p) => p.$2.memberId != null) // Фильтруем только игроков с memberId
           .map((p) => p.$2.nickname)
           .toList(growable: false)..sort())
         DropdownMenuEntry(
