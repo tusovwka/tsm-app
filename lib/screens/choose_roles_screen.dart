@@ -357,6 +357,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       children: [
         // Колонка с игроками
         Expanded(
+          flex: 2,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -466,11 +467,11 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         VerticalDivider(width: 1),
         // Колонка с колодой ролей
         Expanded(
-          flex: 2,
+          flex: 1,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Колода ролей",
@@ -501,7 +502,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
           onTap: isSelectable ? () => _onDeckRoleSelected(role) : null,
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelectable
@@ -515,11 +516,12 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Номер
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: isSelectable
                         ? Theme.of(context).colorScheme.primary
@@ -531,6 +533,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                       "${index + 1}",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 12,
                         color: isSelectable
                             ? Theme.of(context).colorScheme.onPrimary
                             : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -538,23 +541,11 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Название роли
-                Expanded(
-                  child: Text(
-                    role.prettyName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isSelectable
-                          ? Theme.of(context).colorScheme.onPrimaryContainer
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                // Иконка роли
+                const SizedBox(width: 10),
+                // Сокращение роли
                 Text(
                   _getRoleDisplay(role),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: isSelectable
                         ? Theme.of(context).colorScheme.onPrimaryContainer
