@@ -132,7 +132,6 @@ class _MainScreenState extends State<MainScreen> {
                   onPressed: () => openGameLogPage(context),
                   child: const Text("Журнал игры"),
                 ),
-                NotesMenuItemButton(),
                 CheckboxMenuButton(
                   value: _showRoles,
                   onChanged: (value) => setState(() => _showRoles = value ?? false),
