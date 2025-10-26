@@ -8,6 +8,7 @@ import "utils/api/tusovwka_api.dart";
 import "utils/color_scheme.dart";
 import "utils/db/methods.dart" as db;
 import "utils/db/repo.dart";
+import "utils/deck_mode_provider.dart";
 import "utils/game_controller.dart";
 import "utils/misc.dart";
 import "utils/rules.dart";
@@ -34,6 +35,7 @@ void main() async {
         ChangeNotifierProvider<UpdatesChecker>(create: (context) => UpdatesChecker()),
         Provider<BrightnessAwareColorScheme>.value(value: appColorScheme),
         ChangeNotifierProvider<PlayerRepo>(create: (_) => PlayerRepo()),
+        ChangeNotifierProvider<DeckModeProvider>(create: (_) => DeckModeProvider()),
         ChangeNotifierProvider<TimerService>(
           create: (context) => TimerService(controller: context.read(), settings: context.read()),
         ),

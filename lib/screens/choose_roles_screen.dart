@@ -21,7 +21,9 @@ enum _ValidationErrorType {
 }
 
 class ChooseRolesScreen extends StatefulWidget {
-  const ChooseRolesScreen({super.key});
+  final bool initialDeckMode;
+  
+  const ChooseRolesScreen({super.key, this.initialDeckMode = true});
 
   @override
   State<ChooseRolesScreen> createState() => _ChooseRolesScreenState();
@@ -40,7 +42,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   var _isModified = false;
   
   // Режим "Колода"
-  var _isDeckMode = false;
+  late var _isDeckMode;
   final _deckRoles = <PlayerRole>[];
   final _assignedRoles = List<PlayerRole?>.generate(rolesList.length, (index) => null);
   var _currentPlayerIndex = 0;
@@ -48,6 +50,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   @override
   void initState() {
     super.initState();
+    _isDeckMode = widget.initialDeckMode;
+    
     final controller = context.read<GameController>();
     if (controller.isGameInitialized) {
       for (final (i, player) in controller.players.indexed) {
@@ -55,6 +59,11 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         _chosenNicknames[i] = player.nickname;
         _chosenMemberIds[i] = player.memberId;
       }
+    }
+    
+    // Инициализируем колоду при первом запуске
+    if (_isDeckMode) {
+      _shuffleDeck();
     }
   }
 

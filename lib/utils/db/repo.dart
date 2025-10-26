@@ -67,7 +67,14 @@ class PlayerRepo with ChangeNotifier {
     }
   }
 
-  List<WithID<Player>> get data => _box.toMap().entries.map(_converter).toUnmodifiableList();
+  List<WithID<Player>> get data {
+    final result = _box.toMap().entries.map(_converter).toUnmodifiableList();
+    _log.info("Retrieved ${result.length} players from database:");
+    for (final (id, player) in result) {
+      _log.info("Player: ${player.nickname}, memberId: ${player.memberId}");
+    }
+    return result;
+  }
 
   List<WithID<PlayerWithStats>> get dataWithStats => [
         for (final entry in toMapWithStats().entries) (entry.key, entry.value),

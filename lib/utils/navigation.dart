@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 import "../game/log.dart";
 import "../screens/choose_roles_screen.dart";
+import "deck_mode_provider.dart";
 import "../screens/debug_menu_screen.dart";
 import "../screens/game_log.dart";
 import "../screens/player_info.dart";
@@ -18,8 +20,10 @@ Future<void> openPage(BuildContext context, Widget page) async {
   await Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => page));
 }
 
-Future<void> openRoleChooserPage(BuildContext context) =>
-    openPage(context, const ChooseRolesScreen());
+Future<void> openRoleChooserPage(BuildContext context) {
+  final deckModeProvider = context.read<DeckModeProvider>();
+  return openPage(context, ChooseRolesScreen(initialDeckMode: deckModeProvider.isDeckMode));
+}
 
 Future<void> openDebugMenuPage(BuildContext context) => openPage(context, const DebugMenuScreen());
 
