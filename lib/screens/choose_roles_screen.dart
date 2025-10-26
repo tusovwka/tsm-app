@@ -235,20 +235,22 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   void _shuffleDeck() {
     setState(() {
-      _deckRoles.clear();
-      // Создаем колоду: 1 шериф, 1 дон, 2 мафии, 6 мирных жителей
-      _deckRoles.addAll([
-        PlayerRole.sheriff,
-        PlayerRole.don,
-        PlayerRole.mafia,
-        PlayerRole.mafia,
-        ...List.filled(6, PlayerRole.citizen),
-      ]);
+      // Если колода пустая, создаем новую
+      if (_deckRoles.isEmpty) {
+        // Создаем колоду: 1 шериф, 1 дон, 2 мафии, 6 мирных жителей
+        _deckRoles.addAll([
+          PlayerRole.sheriff,
+          PlayerRole.don,
+          PlayerRole.mafia,
+          PlayerRole.mafia,
+          ...List.filled(6, PlayerRole.citizen),
+        ]);
+        // Сбрасываем назначенные роли и текущего игрока
+        _assignedRoles.fillRange(0, _assignedRoles.length, null);
+        _currentPlayerIndex = 0;
+      }
+      // Перемешиваем текущую колоду
       _deckRoles.shuffle(Random());
-      
-      // Сбрасываем назначенные роли и текущего игрока
-      _assignedRoles.fillRange(0, _assignedRoles.length, null);
-      _currentPlayerIndex = 0;
       _isModified = true;
     });
   }
@@ -272,6 +274,11 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       PlayerRole.mafia => "М",
       PlayerRole.citizen => "",
     };
+  }
+
+  String _getRoleDisplayForField(PlayerRole? role) {
+    if (role == null) return "";
+    return role.prettyName;
   }
 
   Widget _buildNormalMode(List<DropdownMenuEntry<String?>> nicknameEntries) {
@@ -346,72 +353,190 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   }
 
   Widget _buildDeckMode(PlayerRepo players) {
-    return SingleChildScrollView(
-      child: Table(
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        columnWidths: const {
-          0: FlexColumnWidth(7),
-          1: FlexColumnWidth(2),
-          2: FlexColumnWidth(2),
-          3: FlexColumnWidth(2),
-          4: FlexColumnWidth(2),
-        },
-        children: [
-          TableRow(
-            children: [
-              const Center(child: Text("Никнейм")),
-              ...PlayerRole.values.map(
-                (role) => Center(
-                  child: Text(
-                    role.prettyName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          for (var i = 0; i < 10; i++)
-            TableRow(
+    return Row(
+      children: [
+        // Колонка с игроками
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  child: DropdownMenu(
-                    expandedInsets: EdgeInsets.zero,
-                    enableFilter: true,
-                    enableSearch: true,
-                    label: Text("Игрок ${i + 1}"),
-                    menuHeight: 256,
-                    inputDecorationTheme: const InputDecorationTheme(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                    ),
-                    requestFocusOnTap: true,
-                    initialSelection: _chosenNicknames[i],
-                    dropdownMenuEntries: [
-                      const DropdownMenuEntry(
-                        value: null,
-                        label: "",
-                        labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
-                      ),
-                      for (final nickname in players.data
-                          .map((p) => p.$2.nickname)
-                          .toList(growable: false)..sort())
-                        DropdownMenuEntry(
-                          value: nickname,
-                          label: nickname,
-                          enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
+                for (var i = 0; i < 10; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownMenu(
+                            expandedInsets: EdgeInsets.zero,
+                            enableFilter: true,
+                            enableSearch: true,
+                            menuHeight: 256,
+                            inputDecorationTheme: InputDecorationTheme(
+                              isDense: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: _currentPlayerIndex == i && _assignedRoles[i] == null
+                                      ? Theme.of(context).colorScheme.primary
+                                      : (_assignedRoles[i] != null
+                                          ? Theme.of(context).colorScheme.secondaryContainer
+                                          : Theme.of(context).colorScheme.outline),
+                                  width: _currentPlayerIndex == i && _assignedRoles[i] == null ? 2 : 1,
+                                ),
+                              ),
+                              labelText: "Игрок ${i + 1}",
+                              suffixText: _assignedRoles[i] != null ? _getRoleDisplay(_assignedRoles[i]) : null,
+                              helperText: _assignedRoles[i] != null ? _getRoleDisplayForField(_assignedRoles[i]) : null,
+                              fillColor: _assignedRoles[i] != null
+                                  ? Theme.of(context).colorScheme.secondaryContainer
+                                  : _currentPlayerIndex == i && _assignedRoles[i] == null
+                                      ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+                                      : null,
+                            ),
+                            requestFocusOnTap: true,
+                            initialSelection: _chosenNicknames[i],
+                            dropdownMenuEntries: [
+                              const DropdownMenuEntry(
+                                value: null,
+                                label: "",
+                                labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+                              ),
+                              for (final nickname in players.data
+                                  .map((p) => p.$2.nickname)
+                                  .toList(growable: false)..sort())
+                                DropdownMenuEntry(
+                                  value: nickname,
+                                  label: nickname,
+                                  enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
+                                ),
+                            ],
+                            onSelected: (value) => _onNicknameSelected(i, value),
+                          ),
                         ),
-                    ],
-                    onSelected: (value) => _onNicknameSelected(i, value),
+                        if (_assignedRoles[i] != null)
+                          IconButton(
+                            icon: Icon(Icons.close),
+                            tooltip: "Убрать роль",
+                            onPressed: () {
+                              setState(() {
+                                _deckRoles.add(_assignedRoles[i]!);
+                                _deckRoles.shuffle(Random());
+                                _assignedRoles[i] = null;
+                                _isModified = true;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                for (final role in PlayerRole.values)
-                  _buildRoleCard(i, role),
               ],
             ),
-        ],
+          ),
+        ),
+        // Вертикальная черта-разделитель
+        VerticalDivider(width: 1),
+        // Колонка с колодой ролей
+        Expanded(
+          flex: 2,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Колода ролей",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                for (var i = 0; i < _deckRoles.length; i++)
+                  _buildDeckRoleCard(i, _deckRoles[i]),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeckRoleCard(int index, PlayerRole role) {
+    final isSelectable = _currentPlayerIndex < rolesList.length;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isSelectable ? () => _onDeckRoleSelected(role) : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isSelectable
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surfaceVariant,
+                width: 2,
+              ),
+              color: isSelectable
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                // Номер
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: isSelectable
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceVariant,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      "${index + 1}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isSelectable
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Название роли
+                Expanded(
+                  child: Text(
+                    role.prettyName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isSelectable
+                          ? Theme.of(context).colorScheme.onPrimaryContainer
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                // Иконка роли
+                Text(
+                  _getRoleDisplay(role),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isSelectable
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
