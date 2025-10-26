@@ -71,6 +71,16 @@ extension _DescribeLogItem on BaseGameLogItem {
         } else {
           result.add(kickMessage);
         }
+      case PlayerYellowCardsChangedGameLogItem(
+          playerNumber: final playerNumber,
+          :final oldYellowCards,
+          :final currentYellowCards,
+        ):
+        if (currentYellowCards > oldYellowCards) {
+          result.add("Игроку #$playerNumber выдан шанс по жёлтым карточкам: $oldYellowCards -> $currentYellowCards");
+        } else {
+          result.add("У игрока #$playerNumber снята жёлтая карточка: $oldYellowCards -> $currentYellowCards");
+        }
     }
     return result;
   }

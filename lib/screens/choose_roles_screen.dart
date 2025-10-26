@@ -73,9 +73,9 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         final players = context.read<PlayerRepo>();
         final player = players.data.firstWhere(
           (p) => p.$2.nickname == value,
-          orElse: () => (null, null),
+          orElse: () => ("", players.data.first.$2),
         );
-        _chosenMemberIds[index] = player.$2?.memberId;
+        _chosenMemberIds[index] = player.$2.memberId;
       } else {
         _chosenMemberIds[index] = null;
       }
