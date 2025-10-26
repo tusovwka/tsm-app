@@ -4,8 +4,7 @@ import "package:meta/meta.dart";
 
 import "../log.dart";
 
-part "note.g.dart";
-
+// part "note.g.dart"; // Temporarily commented out - file not available in build environment
 @HiveType(typeId: 3)
 @immutable
 class Note {
