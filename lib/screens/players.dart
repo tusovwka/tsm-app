@@ -154,7 +154,14 @@ class _PlayerTile extends StatelessWidget {
   Widget build(BuildContext context) => ListTile(
         leading: const Icon(Icons.person),
         title: Text(player.nickname),
-        subtitle: player.realName.isNotEmpty ? Text(player.realName) : null,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (player.realName.isNotEmpty) Text(player.realName),
+            if (player.memberId != null) 
+              Text("ID: ${player.memberId}", style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
         onTap: onTap,
       );
 }
@@ -262,6 +269,71 @@ class PlayersScreen extends StatelessWidget {
     showSnackBar(context, const SnackBar(content: Text("Игроки сохранены")));
   }
 
+  Future<void> _onSyncWithApiPressed(BuildContext context, PlayerRepo players) async {
+    try {
+      final updatedCount = await players.syncWithApi();
+      if (!context.mounted) {
+        return;
+      }
+      showSnackBar(
+        context,
+        SnackBar(
+          content: Text(
+            updatedCount > 0 
+                ? "Синхронизировано $updatedCount игроков" 
+                : "Список игроков актуален",
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) {
+        return;
+      }
+      showSnackBar(
+        context,
+        SnackBar(
+          content: Text("Ошибка синхронизации: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _log.error("Error syncing with API: $e");
+    }
+  }
+
+  Future<void> _onLoadFromApiPressed(BuildContext context, PlayerRepo players) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const ConfirmationDialog(
+        title: Text("Загрузить игроков из API?"),
+        content: Text("Это заменит всех текущих игроков данными из API."),
+      ),
+    );
+    if (confirmed ?? false) {
+      try {
+        await players.loadFromApi();
+        if (!context.mounted) {
+          return;
+        }
+        showSnackBar(
+          context,
+          const SnackBar(content: Text("Игроки загружены из API")),
+        );
+      } catch (e) {
+        if (!context.mounted) {
+          return;
+        }
+        showSnackBar(
+          context,
+          SnackBar(
+            content: Text("Ошибка загрузки из API: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        _log.error("Error loading from API: $e");
+      }
+    }
+  }
+
   Future<void> _onClearPressed(BuildContext context, PlayerRepo players) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -290,6 +362,16 @@ class PlayersScreen extends StatelessWidget {
             icon: const Icon(Icons.search),
             tooltip: "Искать",
             onPressed: () => _onSearchPressed(context, players),
+          ),
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: "Синхронизировать с API",
+            onPressed: () => _onSyncWithApiPressed(context, players),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cloud_download),
+            tooltip: "Загрузить из API",
+            onPressed: () => _onLoadFromApiPressed(context, players),
           ),
           IconButton(
             icon: const Icon(Icons.file_open),

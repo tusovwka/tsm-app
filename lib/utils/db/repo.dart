@@ -5,6 +5,7 @@ import "package:uuid/v7.dart";
 
 import "../extensions.dart";
 import "../log.dart";
+import "../api/tusovwka_api.dart";
 import "models.dart";
 
 typedef WithID<T> = (String id, T item);
@@ -25,8 +26,10 @@ class PlayerRepo with ChangeNotifier {
   final _oldBox = Hive.box<Player>("players");
   final _box = Hive.box<Player>("players2");
   final _statsBox = Hive.box<PlayerStats>("playerStats");
+  final TusovwkaApiClient _apiClient;
 
-  PlayerRepo() {
+  PlayerRepo({TusovwkaApiClient? apiClient}) 
+      : _apiClient = apiClient ?? TusovwkaApiClient() {
     if (_oldBox.isNotEmpty) {
       _log.warning("Old players box is not empty. Migrating data...");
       _migrate();
@@ -166,4 +169,90 @@ class PlayerRepo with ChangeNotifier {
     await _statsBox.clear();
     notifyListeners();
   }
-}
+
+  /// Синхронизирует локальных игроков с API
+  /// Возвращает количество обновленных игроков
+  Future<int> syncWithApi() async {
+    try {
+      _log.info("Starting sync with API...");
+      final apiPlayers = await _apiClient.getPlayers();
+      
+      int updatedCount = 0;
+      final localPlayers = _box.toMap();
+      
+      // Обновляем member_id для существующих игроков
+      for (final entry in localPlayers.entries) {
+        final localPlayer = entry.value;
+        final apiPlayer = apiPlayers.firstWhere(
+          (p) => p.nickname == localPlayer.nickname,
+          orElse: () => throw StateError("Player ${localPlayer.nickname} not found in API"),
+        );
+        
+        if (localPlayer.memberId != apiPlayer.memberId) {
+          final updatedPlayer = localPlayer.copyWith(memberId: apiPlayer.memberId);
+          await _box.put(entry.key, updatedPlayer);
+          updatedCount++;
+          _log.info("Updated member_id for player ${localPlayer.nickname}: ${apiPlayer.memberId}");
+        }
+      }
+      
+      // Добавляем новых игроков из API
+      for (final apiPlayer in apiPlayers) {
+        final exists = localPlayers.values.any((p) => p.nickname == apiPlayer.nickname);
+        if (!exists) {
+          final newPlayer = Player(
+            nickname: apiPlayer.nickname,
+            realName: "", // API не предоставляет реальное имя
+            memberId: apiPlayer.memberId,
+          );
+          await add(newPlayer);
+          updatedCount++;
+          _log.info("Added new player from API: ${apiPlayer.nickname} (${apiPlayer.memberId})");
+        }
+      }
+      
+      if (updatedCount > 0) {
+        notifyListeners();
+      }
+      
+      _log.info("Sync completed. Updated $updatedCount players.");
+      return updatedCount;
+    } catch (e) {
+      _log.error("Failed to sync with API: $e");
+      rethrow;
+    }
+  }
+
+  /// Загружает игроков только из API (заменяет локальных)
+  Future<void> loadFromApi() async {
+    try {
+      _log.info("Loading players from API...");
+      final apiPlayers = await _apiClient.getPlayers();
+      
+      await clear();
+      
+      final playersWithStats = apiPlayers.map((apiPlayer) => PlayerWithStats(
+        Player(
+          nickname: apiPlayer.nickname,
+          realName: "", // API не предоставляет реальное имя
+          memberId: apiPlayer.memberId,
+        ),
+        const PlayerStats.defaults(),
+      ));
+      
+      await addAllWithStats(playersWithStats);
+      _log.info("Loaded ${apiPlayers.length} players from API");
+    } catch (e) {
+      _log.error("Failed to load players from API: $e");
+      rethrow;
+    }
+  }
+
+  /// Проверяет доступность API
+  Future<bool> isApiAvailable() async {
+    return await _apiClient.isApiAvailable();
+  }
+
+  void dispose() {
+    _apiClient.dispose();
+  }

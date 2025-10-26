@@ -197,6 +197,7 @@ db_models.PlayerWithStats dbPlayerFromJson(
           db_models.Player(
             nickname: json["nickname"] as String,
             realName: json["realName"] as String? ?? "",
+            memberId: json["memberId"] as int?,
           ),
           json["stats"] != null
               ? dbPlayerStatsFromJson(

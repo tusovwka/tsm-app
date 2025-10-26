@@ -4,6 +4,7 @@ import "package:package_info_plus/package_info_plus.dart";
 import "package:provider/provider.dart";
 
 import "screens/main.dart";
+import "utils/api/tusovwka_api.dart";
 import "utils/color_scheme.dart";
 import "utils/db/methods.dart" as db;
 import "utils/db/repo.dart";
