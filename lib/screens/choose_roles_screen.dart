@@ -88,10 +88,12 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       if (value != null) {
         final players = context.read<PlayerRepo>();
         if (players.data.isNotEmpty) {
+          // Ищем игрока с таким никнеймом
           final player = players.data.firstWhere(
             (p) => p.$2.nickname == value,
             orElse: () => players.data.first,
           );
+          // Все игроки в БД должны иметь memberId
           _chosenMemberIds[index] = player.$2.memberId;
         }
       } else {
@@ -469,7 +471,12 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         Expanded(
           flex: 1,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              MediaQuery.of(context).size.width >= 600 ? 16 : 8,
+              16,
+              16,
+            ),
               child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
