@@ -73,11 +73,12 @@ class GameBottomControlBar extends StatelessWidget {
         wasKilledFirstNight: bestTurn?.currentPlayerNumber == player.number,
       );
       // Обновляем также данные игрока, включая memberId
+      // Важно: используем memberId из текущего игрока, если он есть (из нового выбора)
+      final updatedMemberId = player.memberId ?? pws.player.memberId;
       final updatedPlayer = pws.player.copyWith(
         nickname: player.nickname ?? pws.player.nickname,
         realName: pws.player.realName,
-        // Сохраняем memberId из текущего игрока или используем значение из БД
-        memberId: player.memberId ?? pws.player.memberId,
+        memberId: updatedMemberId,
       );
       newPlayers[key] = PlayerWithStats(updatedPlayer, newStats);
     }

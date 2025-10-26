@@ -473,7 +473,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               16,
-              MediaQuery.of(context).size.width >= 600 ? 16 : 8,
+              MediaQuery.of(context).size.width >= 600 ? 16 : 4,
               16,
               16,
             ),
