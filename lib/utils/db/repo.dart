@@ -256,3 +256,4 @@ class PlayerRepo with ChangeNotifier {
   void dispose() {
     _apiClient.dispose();
   }
+}
