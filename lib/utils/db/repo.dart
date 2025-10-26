@@ -95,6 +95,7 @@ class PlayerRepo with ChangeNotifier {
       final id = _uuid7.generate(options: V7Options(t++, null));
       insertData[id] = player.player;
       statsInsertData[id] = player.stats;
+      _log.info("Saving player: ${player.player.nickname} with memberId: ${player.player.memberId}");
     }
     await _box.putAll(insertData);
     await _statsBox.putAll(statsInsertData);

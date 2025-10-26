@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -37,6 +38,12 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   final _chosenNicknames = List<String?>.generate(rolesList.length, (index) => null);
   final _chosenMemberIds = List<int?>.generate(rolesList.length, (index) => null);
   var _isModified = false;
+  
+  // Режим "Колода"
+  var _isDeckMode = false;
+  final _deckRoles = <PlayerRole>[];
+  final _assignedRoles = List<PlayerRole?>.generate(rolesList.length, (index) => null);
+  var _currentPlayerIndex = 0;
 
   @override
   void initState() {
@@ -204,7 +211,266 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     return result;
   }
 
+  // Методы для режима "Колода"
+  void _toggleDeckMode() {
+    setState(() {
+      _isDeckMode = !_isDeckMode;
+      if (_isDeckMode) {
+        _shuffleDeck();
+        _currentPlayerIndex = 0;
+        _assignedRoles.fillRange(0, _assignedRoles.length, null);
+      }
+      _isModified = true;
+    });
+  }
+
+  void _shuffleDeck() {
+    _deckRoles.clear();
+    // Создаем колоду: 1 шериф, 1 дон, 2 мафии, 6 мирных жителей
+    _deckRoles.addAll([
+      PlayerRole.sheriff,
+      PlayerRole.don,
+      PlayerRole.mafia,
+      PlayerRole.mafia,
+      ...List.filled(6, PlayerRole.citizen),
+    ]);
+    _deckRoles.shuffle(Random());
+  }
+
+  void _onDeckRoleSelected(PlayerRole role) {
+    if (_currentPlayerIndex >= rolesList.length) return;
+    
+    setState(() {
+      _assignedRoles[_currentPlayerIndex] = role;
+      _deckRoles.remove(role);
+      _currentPlayerIndex++;
+      _isModified = true;
+    });
+  }
+
+  String _getRoleDisplay(PlayerRole? role) {
+    if (role == null) return "";
+    return switch (role) {
+      PlayerRole.sheriff => "Ш",
+      PlayerRole.don => "Д", 
+      PlayerRole.mafia => "М",
+      PlayerRole.citizen => "",
+    };
+  }
+
+  Widget _buildNormalMode(List<DropdownMenuEntry<String?>> nicknameEntries) {
+    return SingleChildScrollView(
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        columnWidths: const {
+          0: FlexColumnWidth(7),
+          1: FlexColumnWidth(2),
+          2: FlexColumnWidth(2),
+          3: FlexColumnWidth(2),
+          4: FlexColumnWidth(2),
+        },
+        children: [
+          TableRow(
+            children: [
+              const Center(child: Text("Никнейм")),
+              ...PlayerRole.values.map(
+                (role) {
+                  final errorText = _getErrorText(role);
+                  return Tooltip(
+                    message: errorText ?? "",
+                    child: Center(
+                      child: Text(
+                        role.prettyName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: errorText != null ? Colors.red : null,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          for (var i = 0; i < 10; i++)
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: DropdownMenu(
+                    expandedInsets: EdgeInsets.zero,
+                    enableFilter: true,
+                    enableSearch: true,
+                    label: Text("Игрок ${i + 1}"),
+                    menuHeight: 256,
+                    inputDecorationTheme: const InputDecorationTheme(
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    errorText: _errorsByIndex.contains(i) ? "Роль не выбрана" : null,
+                    requestFocusOnTap: true,
+                    initialSelection: _chosenNicknames[i],
+                    dropdownMenuEntries: nicknameEntries,
+                    onSelected: (value) => _onNicknameSelected(i, value),
+                  ),
+                ),
+                for (final role in PlayerRole.values)
+                  Checkbox(
+                    value: _roles[i].contains(role),
+                    onChanged: (value) => _changeValue(i, role, value!),
+                    isError: _errorsByRole.containsKey(role) || _errorsByIndex.contains(i),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeckMode() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Информация о текущем игроке
+          if (_currentPlayerIndex < rolesList.length)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Игрок ${_currentPlayerIndex + 1}",
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text("Выберите роль из колоды:"),
+                  ],
+                ),
+              ),
+            ),
+          
+          const SizedBox(height: 16),
+          
+          // Колода ролей
+          Text(
+            "Колода ролей (${_deckRoles.length} осталось):",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _deckRoles.asMap().entries.map((entry) {
+              final index = entry.key;
+              final role = entry.value;
+              return GestureDetector(
+                onTap: () => _onDeckRoleSelected(role),
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "${index + 1}",
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getRoleDisplay(role),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          role.prettyName,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Список игроков с назначенными ролями
+          Text(
+            "Назначенные роли:",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          
+          for (var i = 0; i < rolesList.length; i++)
+            Card(
+              color: i == _currentPlayerIndex 
+                ? Theme.of(context).colorScheme.secondaryContainer
+                : null,
+              child: ListTile(
+                title: Text("Игрок ${i + 1}"),
+                subtitle: _assignedRoles[i] != null 
+                  ? Text("Роль: ${_assignedRoles[i]!.prettyName}")
+                  : const Text("Роль не назначена"),
+                trailing: _assignedRoles[i] != null
+                  ? Chip(
+                      label: Text(_getRoleDisplay(_assignedRoles[i])),
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    )
+                  : null,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onFabPressed(BuildContext context) async {
+    if (_isDeckMode) {
+      // Проверяем, что все роли назначены
+      if (_deckRoles.isNotEmpty) {
+        showSnackBar(context, const SnackBar(content: Text("Не все роли назначены игрокам")));
+        return;
+      }
+      
+      // Применяем роли из режима "Колода"
+      final newRoles = _assignedRoles.cast<PlayerRole>();
+      final showRoles = await showDialog<bool>(
+        context: context,
+        builder: (context) => const ConfirmationDialog(
+          title: Text("Показать роли?"),
+          content: Text("После применения ролей можно провести их раздачу игрокам"),
+          rememberKey: "showRoles",
+        ),
+      );
+      if (!context.mounted) {
+        throw ContextNotMountedError();
+      }
+      if (showRoles == null) {
+        return;
+      }
+      context.read<GameController>()
+        ..roles = newRoles
+        ..showRoles = showRoles;
+      if (!context.mounted) {
+        throw ContextNotMountedError();
+      }
+      Navigator.of(context).pop();
+      return;
+    }
+    
+    // Обычный режим
     setState(_validate);
     if (_errorsByIndex.isNotEmpty || _errorsByRole.isNotEmpty) {
       showSnackBar(context, const SnackBar(content: Text("Для продолжения исправьте ошибки")));
@@ -294,83 +560,21 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Выбор ролей"),
+          title: Text(_isDeckMode ? "Колода ролей" : "Выбор ролей"),
           actions: [
             IconButton(
-              tooltip: "Сбросить",
-              onPressed: _toggleAll,
-              icon: const Icon(Icons.restart_alt),
+              tooltip: _isDeckMode ? "Перемешать колоду" : "Сбросить",
+              onPressed: _isDeckMode ? _shuffleDeck : _toggleAll,
+              icon: Icon(_isDeckMode ? Icons.shuffle : Icons.restart_alt),
+            ),
+            IconButton(
+              tooltip: _isDeckMode ? "Обычный режим" : "Режим колоды",
+              onPressed: _toggleDeckMode,
+              icon: Icon(_isDeckMode ? Icons.list : Icons.style),
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            columnWidths: const {
-              0: FlexColumnWidth(7),
-              1: FlexColumnWidth(2),
-              2: FlexColumnWidth(2),
-              3: FlexColumnWidth(2),
-              4: FlexColumnWidth(2),
-            },
-            children: [
-              TableRow(
-                children: [
-                  const Center(child: Text("Никнейм")),
-                  ...PlayerRole.values.map(
-                    (role) {
-                      final errorText = _getErrorText(role);
-                      return Tooltip(
-                        message: errorText ?? "",
-                        child: Center(
-                          child: Text(
-                            role.prettyName,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: errorText != null ? Colors.red : null,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              for (var i = 0; i < 10; i++)
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                      child: DropdownMenu(
-                        expandedInsets: EdgeInsets.zero,
-                        enableFilter: true,
-                        enableSearch: true,
-                        label: Text("Игрок ${i + 1}"),
-                        menuHeight: 256,
-                        inputDecorationTheme: const InputDecorationTheme(
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                        ),
-                        errorText: _errorsByIndex.contains(i) ? "Роль не выбрана" : null,
-                        requestFocusOnTap: true,
-                        initialSelection: _chosenNicknames[i],
-                        dropdownMenuEntries: nicknameEntries,
-                        onSelected: (value) => _onNicknameSelected(i, value),
-                      ),
-                    ),
-                    for (final role in PlayerRole.values)
-                      Checkbox(
-                        value: _roles[i].contains(role),
-                        onChanged: (value) => _changeValue(i, role, value!),
-                        isError: _errorsByRole.containsKey(role) || _errorsByIndex.contains(i),
-                      ),
-                  ],
-                ),
-            ],
-          ),
-        ),
+        body: _isDeckMode ? _buildDeckMode() : _buildNormalMode(nicknameEntries),
         floatingActionButton: FloatingActionButton(
           tooltip: "Применить",
           onPressed: () => _onFabPressed(context),
