@@ -54,6 +54,14 @@ BaseGameLogItem gameLogFromJson(Map<String, dynamic> json, {required GameLogVers
       currentWarns: json["currentWarns"] as int,
     );
   }
+  if (json.containsKey("oldYellowCards")) {
+    return PlayerYellowCardsChangedGameLogItem(
+      day: json["day"] as int,
+      playerNumber: json["playerNumber"] as int,
+      oldYellowCards: json["oldYellowCards"] as int,
+      currentYellowCards: json["currentYellowCards"] as int,
+    );
+  }
   throw ArgumentError.value(json, "json", "Unknown game log item");
 }
 
@@ -176,6 +184,7 @@ Player playerFromJson(Map<String, dynamic> json, {required GameLogVersion versio
       role: PlayerRole.byName(json["role"] as String),
       number: json["number"] as int,
       nickname: json["nickname"] as String?,
+      memberId: json["memberId"] as int?,
     );
 
 PlayerState playerStateFromJson(Map<String, dynamic> json, {required GameLogVersion version}) =>
@@ -186,6 +195,7 @@ PlayerState playerStateFromJson(Map<String, dynamic> json, {required GameLogVers
         GameLogVersion.v0 => json["warns"] as int >= 4,
         GameLogVersion.v2 => json["isKicked"] as bool,
       },
+      yellowCards: json["yellowCards"] as int? ?? 0,
     );
 
 db_models.PlayerWithStats dbPlayerFromJson(

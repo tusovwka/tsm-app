@@ -35,6 +35,15 @@ class GameController with ChangeNotifier {
     _nicknames = value;
   }
 
+  List<int?>? _memberIds;
+
+  List<int?>? get memberIds => _memberIds;
+
+  set memberIds(List<int?>? value) {
+    assert(value == null || value.length == 10, "Member IDs list must have 10 elements");
+    _memberIds = value;
+  }
+
   List<PlayerRole>? _roles;
 
   List<PlayerRole>? get roles => _roles;
@@ -68,7 +77,7 @@ class GameController with ChangeNotifier {
     required GameRulesModel rules,
   }) {
     _game = Game.withPlayers(
-      generatePlayers(nicknames: _nicknames, roles: _roles),
+      generatePlayers(nicknames: _nicknames, roles: _roles, memberIds: _memberIds),
       config: rules.toGameConfig(),
     );
     notifyListeners();
@@ -78,6 +87,7 @@ class GameController with ChangeNotifier {
     _game = null;
     _roles = null;
     _nicknames = null;
+    _memberIds = null;
     _log.debug("Game stopped");
     notifyListeners();
   }
@@ -114,6 +124,16 @@ class GameController with ChangeNotifier {
 
   void kickPlayer(int player) {
     _game.ensureInitialized.kickPlayer(player);
+    notifyListeners();
+  }
+
+  void addYellowCard(int player) {
+    _game.ensureInitialized.addYellowCard(player);
+    notifyListeners();
+  }
+
+  void removeYellowCard(int player) {
+    _game.ensureInitialized.removeYellowCard(player);
     notifyListeners();
   }
 

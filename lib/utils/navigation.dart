@@ -4,6 +4,7 @@ import "../game/log.dart";
 import "../screens/choose_roles_screen.dart";
 import "../screens/debug_menu_screen.dart";
 import "../screens/game_log.dart";
+import "../screens/notes_screen.dart";
 import "../screens/player_info.dart";
 import "../screens/player_stats.dart";
 import "../screens/players.dart";
@@ -25,6 +26,8 @@ Future<void> openDebugMenuPage(BuildContext context) => openPage(context, const 
 
 Future<void> openGameLogPage(BuildContext context, [List<BaseGameLogItem>? log]) =>
     openPage(context, GameLogScreen(log: log));
+
+Future<void> openNotesPage(BuildContext context) => openPage(context, const NotesScreen());
 
 Future<void> openPlayerInfoPage(BuildContext context, String playerID) =>
     openPage(context, PlayerInfoScreen(playerID: playerID));

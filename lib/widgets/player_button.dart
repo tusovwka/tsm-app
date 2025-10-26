@@ -127,7 +127,8 @@ class PlayerButton extends StatelessWidget {
             "Номер игрока: ${player.number}\n"
             "Состояние: $isAliveText\n"
             // "Роль: ${player.role.prettyName}\n"
-            "Фолов: ${player.state.warns}",
+            "Фолов: ${player.state.warns}\n"
+            "Жёлтых карточек: ${player.state.yellowCards}",
           ),
           actions: [
             MenuAnchor(
@@ -139,6 +140,14 @@ class PlayerButton extends StatelessWidget {
                 MenuItemButton(
                   child: const Text("- Фол"),
                   onPressed: () => controller.warnMinusPlayer(playerNumber),
+                ),
+                MenuItemButton(
+                  child: const Text("+ ЖК"),
+                  onPressed: () => controller.addYellowCard(playerNumber),
+                ),
+                MenuItemButton(
+                  child: const Text("- ЖК"),
+                  onPressed: () => controller.removeYellowCard(playerNumber),
                 ),
                 MenuItemButton(
                   child: const Text("Дисквалификация"),
@@ -222,6 +231,31 @@ class PlayerButton extends StatelessWidget {
             style: const TextStyle(color: Colors.red),
           ),
         ),
+        // Желтые карточки
+        if (player.state.yellowCards > 0)
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: player.state.yellowCards >= 2 ? Colors.red : Colors.yellow,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.black, width: 1),
+              ),
+              child: Center(
+                child: Text(
+                  "${player.state.yellowCards}",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

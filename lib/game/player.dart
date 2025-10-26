@@ -45,11 +45,13 @@ class Player {
   final PlayerRole role;
   final int number;
   final String? nickname;
+  final int? memberId;
 
   const Player({
     required this.role,
     required this.number,
     required this.nickname,
+    this.memberId,
   });
 
   @override
@@ -59,10 +61,11 @@ class Player {
           runtimeType == other.runtimeType &&
           role == other.role &&
           number == other.number &&
-          nickname == other.nickname;
+          nickname == other.nickname &&
+          memberId == other.memberId;
 
   @override
-  int get hashCode => Object.hash(role, number, nickname);
+  int get hashCode => Object.hash(role, number, nickname, memberId);
 
   @useResult
   PlayerWithState withState({
@@ -72,6 +75,7 @@ class Player {
         role: role,
         number: number,
         nickname: nickname,
+        memberId: memberId,
         state: state ?? const PlayerState(),
       );
 }
@@ -81,11 +85,13 @@ class PlayerState {
   final bool isAlive;
   final int warns;
   final bool isKicked;
+  final int yellowCards;
 
   const PlayerState({
     this.isAlive = true,
     this.warns = 0,
     this.isKicked = false,
+    this.yellowCards = 0,
   });
 
   @useResult
@@ -93,11 +99,13 @@ class PlayerState {
     bool? isAlive,
     int? warns,
     bool? isKicked,
+    int? yellowCards,
   }) =>
       PlayerState(
         isAlive: isAlive ?? this.isAlive,
         warns: warns ?? this.warns,
         isKicked: isKicked ?? this.isKicked,
+        yellowCards: yellowCards ?? this.yellowCards,
       );
 
   @override
@@ -107,10 +115,11 @@ class PlayerState {
           runtimeType == other.runtimeType &&
           isAlive == other.isAlive &&
           warns == other.warns &&
-          isKicked == other.isKicked;
+          isKicked == other.isKicked &&
+          yellowCards == other.yellowCards;
 
   @override
-  int get hashCode => Object.hash(isAlive, warns, isKicked);
+  int get hashCode => Object.hash(isAlive, warns, isKicked, yellowCards);
 }
 
 @immutable
@@ -121,6 +130,7 @@ class PlayerWithState extends Player {
     required super.role,
     required super.number,
     required super.nickname,
+    super.memberId,
     required this.state,
   });
 
@@ -132,6 +142,7 @@ class PlayerWithState extends Player {
           role == other.role &&
           number == other.number &&
           nickname == other.nickname &&
+          memberId == other.memberId &&
           state == other.state;
 
   @override
@@ -141,6 +152,7 @@ class PlayerWithState extends Player {
 List<Player> generatePlayers({
   List<String?>? nicknames,
   List<PlayerRole>? roles,
+  List<int?>? memberIds,
 }) {
   final playerRoles = roles ?? (List.of(rolesList)..shuffle());
   return [
@@ -149,6 +161,7 @@ List<Player> generatePlayers({
         role: playerRoles[i],
         number: i + 1,
         nickname: nicknames?.elementAt(i),
+        memberId: memberIds?.elementAt(i),
       ),
   ].toUnmodifiableList();
 }

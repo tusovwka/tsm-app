@@ -35,6 +35,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   final _errorsByRole = <PlayerRole, _ValidationErrorType>{};
   final _errorsByIndex = <int>{};
   final _chosenNicknames = List<String?>.generate(rolesList.length, (index) => null);
+  final _chosenMemberIds = List<int?>.generate(rolesList.length, (index) => null);
   var _isModified = false;
 
   @override
@@ -45,6 +46,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       for (final (i, player) in controller.players.indexed) {
         _roles[i] = {player.role};
         _chosenNicknames[i] = player.nickname;
+        _chosenMemberIds[i] = player.memberId;
       }
     }
   }
@@ -65,6 +67,18 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     setState(() {
       _isModified = true;
       _chosenNicknames[index] = value;
+      
+      // Найти соответствующий member_id для выбранного никнейма
+      if (value != null) {
+        final players = context.read<PlayerRepo>();
+        final player = players.data.firstWhere(
+          (p) => p.$2.nickname == value,
+          orElse: () => (null, null),
+        );
+        _chosenMemberIds[index] = player.$2?.memberId;
+      } else {
+        _chosenMemberIds[index] = null;
+      }
     });
   }
 
@@ -219,6 +233,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     context.read<GameController>()
       ..roles = newRoles
       ..nicknames = _chosenNicknames
+      ..memberIds = _chosenMemberIds
       ..startNewGame(rules: context.read());
     if (showRoles) {
       await openRolesPage(context);

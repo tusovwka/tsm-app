@@ -58,36 +58,6 @@ class PlayersScreen extends StatelessWidget {
 
 
 
-  Future<void> _onSyncWithApiPressed(BuildContext context, PlayerRepo players) async {
-    try {
-      final updatedCount = await players.syncWithApi();
-      if (!context.mounted) {
-        return;
-      }
-      showSnackBar(
-        context,
-        SnackBar(
-          content: Text(
-            updatedCount > 0 
-                ? "Синхронизировано $updatedCount игроков" 
-                : "Список игроков актуален",
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) {
-        return;
-      }
-      showSnackBar(
-        context,
-        SnackBar(
-          content: Text("Ошибка синхронизации: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      _log.error("Error syncing with API: $e");
-    }
-  }
 
   Future<void> _onLoadFromApiPressed(BuildContext context, PlayerRepo players) async {
     final confirmed = await showDialog<bool>(
@@ -151,11 +121,6 @@ class PlayersScreen extends StatelessWidget {
             icon: const Icon(Icons.search),
             tooltip: "Искать",
             onPressed: () => _onSearchPressed(context, players),
-          ),
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: "Синхронизировать с API",
-            onPressed: () => _onSyncWithApiPressed(context, players),
           ),
           IconButton(
             icon: const Icon(Icons.cloud_download),

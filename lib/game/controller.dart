@@ -673,6 +673,53 @@ class Game {
     _editPlayers(newPlayers);
   }
 
+  void addYellowCard(int number) {
+    if (!isActive) {
+      throw StateError("Can't add yellow card in state ${state.stage}");
+    }
+    final newPlayers = List.of(state.playerStates);
+    final i = number - 1;
+    final oldYellowCards = newPlayers[i].yellowCards;
+    final newYellowCards = oldYellowCards + 1;
+    newPlayers[i] = newPlayers[i].copyWith(
+      yellowCards: newYellowCards,
+      isAlive: newPlayers[i].isAlive && newYellowCards < 2,
+      isKicked: newYellowCards >= 2,
+    );
+    _log.add(
+      PlayerYellowCardsChangedGameLogItem(
+        day: state.day,
+        playerNumber: number,
+        oldYellowCards: oldYellowCards,
+        currentYellowCards: newYellowCards,
+      ),
+    );
+    if (newYellowCards >= 2) {
+      _log.add(PlayerKickedGameLogItem(day: state.day, playerNumber: number));
+    }
+    _editPlayers(newPlayers);
+  }
+
+  void removeYellowCard(int number) {
+    if (!isActive) {
+      throw StateError("Can't remove yellow card in state ${state.stage}");
+    }
+    final newPlayers = List.of(state.playerStates);
+    final i = number - 1;
+    final oldYellowCards = newPlayers[i].yellowCards;
+    final newYellowCards = (oldYellowCards - 1).clamp(0, 1);
+    newPlayers[i] = newPlayers[i].copyWith(yellowCards: newYellowCards);
+    _log.add(
+      PlayerYellowCardsChangedGameLogItem(
+        day: state.day,
+        playerNumber: number,
+        oldYellowCards: oldYellowCards,
+        currentYellowCards: newYellowCards,
+      ),
+    );
+    _editPlayers(newPlayers);
+  }
+
   int getPlayerWarnCount(int number) => players.getByNumber(number).state.warns;
 
   bool checkPlayer(int number) {

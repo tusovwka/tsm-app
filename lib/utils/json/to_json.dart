@@ -93,6 +93,18 @@ extension BaseGameLogItemJson on BaseGameLogItem {
             "oldWarns": oldWarns,
             "currentWarns": currentWarns,
           },
+        PlayerYellowCardsChangedGameLogItem(
+          :final day,
+          :final playerNumber,
+          :final oldYellowCards,
+          :final currentYellowCards,
+        ) =>
+          {
+            "day": day,
+            "playerNumber": playerNumber,
+            "oldYellowCards": oldYellowCards,
+            "currentYellowCards": currentYellowCards,
+          },
         PlayerKickedGameLogItem(:final day, :final playerNumber, :final isOtherTeamWin) => {
             "day": day,
             "playerNumber": playerNumber,
@@ -106,6 +118,7 @@ extension PlayerJson on Player {
         "number": number,
         "role": role.name,
         "nickname": nickname,
+        "memberId": memberId,
       };
 }
 
@@ -114,6 +127,7 @@ extension PlayerStateJson on PlayerState {
         "isAlive": isAlive,
         "warns": warns,
         "isKicked": isKicked,
+        "yellowCards": yellowCards,
       };
 }
 

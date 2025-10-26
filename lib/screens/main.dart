@@ -31,7 +31,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   var _showRoles = false;
-  final _notes = TextEditingController();
   var _warnMode = false;
 
   @override
@@ -42,7 +41,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    _notes.dispose();
     super.dispose();
   }
 
@@ -134,7 +132,7 @@ class _MainScreenState extends State<MainScreen> {
                   onPressed: () => openGameLogPage(context),
                   child: const Text("Журнал игры"),
                 ),
-                NotesMenuItemButton(context: context, controller: _notes),
+                NotesMenuItemButton(),
                 CheckboxMenuButton(
                   value: _showRoles,
                   onChanged: (value) => setState(() => _showRoles = value ?? false),

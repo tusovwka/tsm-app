@@ -10,6 +10,7 @@ import "utils/db/methods.dart" as db;
 import "utils/db/repo.dart";
 import "utils/game_controller.dart";
 import "utils/misc.dart";
+import "utils/notes/note.dart";
 import "utils/rules.dart";
 import "utils/settings.dart";
 import "utils/timer.dart";
@@ -34,6 +35,7 @@ void main() async {
         ChangeNotifierProvider<UpdatesChecker>(create: (context) => UpdatesChecker()),
         Provider<BrightnessAwareColorScheme>.value(value: appColorScheme),
         ChangeNotifierProvider<PlayerRepo>(create: (_) => PlayerRepo()),
+        ChangeNotifierProvider<NotesRepository>(create: (_) => NotesRepository()),
         ChangeNotifierProvider<TimerService>(
           create: (context) => TimerService(controller: context.read(), settings: context.read()),
         ),

@@ -68,6 +68,22 @@ class PlayerWarnsChangedGameLogItem extends BaseGameLogItem {
   });
 }
 
+@immutable
+class PlayerYellowCardsChangedGameLogItem extends BaseGameLogItem {
+  @override
+  final int day;
+  final int playerNumber;
+  final int oldYellowCards;
+  final int currentYellowCards;
+
+  const PlayerYellowCardsChangedGameLogItem({
+    required this.day,
+    required this.playerNumber,
+    required this.oldYellowCards,
+    required this.currentYellowCards,
+  });
+}
+
 class GameLog with IterableMixin<BaseGameLogItem> {
   final _log = <BaseGameLogItem>[];
 
