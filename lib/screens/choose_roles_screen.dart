@@ -403,7 +403,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                       const DropdownMenuEntry(
                         value: null,
                         label: "",
-                        labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+                        labelWidget: Text("(Гость)", style: TextStyle(fontStyle: FontStyle.italic)),
                       ),
                       for (final nickname in players.data
                           .map((p) => p.$2.nickname)
@@ -473,14 +473,16 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
               child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  "Колода ролей",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                if (MediaQuery.of(context).size.width >= 600)
+                  Text(
+                    "Колода ролей",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
+                if (MediaQuery.of(context).size.width >= 600)
+                  const SizedBox(height: 16),
                 for (var i = 0; i < _deckRoles.length; i++)
                   _buildDeckRoleCard(i, _deckRoles[i]),
               ],
