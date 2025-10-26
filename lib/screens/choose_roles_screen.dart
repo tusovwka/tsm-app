@@ -368,50 +368,78 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: DropdownMenu(
-                            expandedInsets: EdgeInsets.zero,
-                            enableFilter: true,
-                            enableSearch: true,
-                            menuHeight: 256,
-                            inputDecorationTheme: InputDecorationTheme(
-                              isDense: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: _currentPlayerIndex == i && _assignedRoles[i] == null
-                                      ? Theme.of(context).colorScheme.primary
-                                      : (_assignedRoles[i] != null
-                                          ? Theme.of(context).colorScheme.secondaryContainer
-                                          : Theme.of(context).colorScheme.outline),
-                                  width: _currentPlayerIndex == i && _assignedRoles[i] == null ? 2 : 1,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DropdownMenu(
+                                expandedInsets: EdgeInsets.zero,
+                                enableFilter: true,
+                                enableSearch: true,
+                                menuHeight: 256,
+                                label: Text("Игрок ${i + 1}"),
+                                inputDecorationTheme: InputDecorationTheme(
+                                  isDense: true,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _currentPlayerIndex == i && _assignedRoles[i] == null
+                                          ? Theme.of(context).colorScheme.primary
+                                          : (_assignedRoles[i] != null
+                                              ? Theme.of(context).colorScheme.secondaryContainer
+                                              : Theme.of(context).colorScheme.outline),
+                                      width: _currentPlayerIndex == i && _assignedRoles[i] == null ? 2 : 1,
+                                    ),
+                                  ),
+                                  filled: _assignedRoles[i] != null || (_currentPlayerIndex == i && _assignedRoles[i] == null),
+                                  fillColor: _assignedRoles[i] != null
+                                      ? Theme.of(context).colorScheme.secondaryContainer
+                                      : _currentPlayerIndex == i && _assignedRoles[i] == null
+                                          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
+                                          : null,
                                 ),
+                                requestFocusOnTap: true,
+                                initialSelection: _chosenNicknames[i],
+                                dropdownMenuEntries: [
+                                  const DropdownMenuEntry(
+                                    value: null,
+                                    label: "",
+                                    labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+                                  ),
+                                  for (final nickname in players.data
+                                      .map((p) => p.$2.nickname)
+                                      .toList(growable: false)..sort())
+                                    DropdownMenuEntry(
+                                      value: nickname,
+                                      label: nickname,
+                                      enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
+                                    ),
+                                ],
+                                onSelected: (value) => _onNicknameSelected(i, value),
                               ),
-                              labelText: "Игрок ${i + 1}",
-                              suffixText: _assignedRoles[i] != null ? _getRoleDisplay(_assignedRoles[i]) : null,
-                              helperText: _assignedRoles[i] != null ? _getRoleDisplayForField(_assignedRoles[i]) : null,
-                              fillColor: _assignedRoles[i] != null
-                                  ? Theme.of(context).colorScheme.secondaryContainer
-                                  : _currentPlayerIndex == i && _assignedRoles[i] == null
-                                      ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-                                      : null,
-                            ),
-                            requestFocusOnTap: true,
-                            initialSelection: _chosenNicknames[i],
-                            dropdownMenuEntries: [
-                              const DropdownMenuEntry(
-                                value: null,
-                                label: "",
-                                labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
-                              ),
-                              for (final nickname in players.data
-                                  .map((p) => p.$2.nickname)
-                                  .toList(growable: false)..sort())
-                                DropdownMenuEntry(
-                                  value: nickname,
-                                  label: nickname,
-                                  enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[i] == nickname,
+                              if (_assignedRoles[i] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 12, top: 4),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        _getRoleDisplay(_assignedRoles[i]),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).colorScheme.secondary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _getRoleDisplayForField(_assignedRoles[i]),
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.secondary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                             ],
-                            onSelected: (value) => _onNicknameSelected(i, value),
                           ),
                         ),
                         if (_assignedRoles[i] != null)
