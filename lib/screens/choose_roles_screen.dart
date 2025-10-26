@@ -333,7 +333,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     );
   }
 
-  Widget _buildDeckMode() {
+  Widget _buildDeckMode(PlayerRepo players) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -643,7 +643,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
             ),
           ],
         ),
-        body: _isDeckMode ? _buildDeckMode() : _buildNormalMode(nicknameEntries),
+        body: _isDeckMode ? _buildDeckMode(players) : _buildNormalMode(nicknameEntries),
         floatingActionButton: FloatingActionButton(
           tooltip: "Применить",
           onPressed: () => _onFabPressed(context),
