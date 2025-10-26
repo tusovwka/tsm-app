@@ -470,8 +470,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
           flex: 1,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   "Колода ролей",
@@ -516,7 +516,6 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 // Номер
                 Container(
