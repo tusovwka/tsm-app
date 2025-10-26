@@ -9,11 +9,10 @@ Future<void> init() async {
   Hive
     ..registerAdapter(PlayerRoleAdapter())
     ..registerAdapter(PlayerAdapter())
-    ..registerAdapter(PlayerStatsAdapter());
-    // TODO: Generate note.g.dart file by running: flutter pub run build_runner build
-    // ..registerAdapter(NoteAdapter());
+    ..registerAdapter(PlayerStatsAdapter())
+    ..registerAdapter(NoteAdapter());
   await Hive.openBox<Player>("players");
   await Hive.openBox<Player>("players2");
   await Hive.openBox<PlayerStats>("playerStats");
-  // await Hive.openBox<Note>("notes"); // Temporarily disabled until note.g.dart is generated
+  await Hive.openBox<Note>("notes");
 }

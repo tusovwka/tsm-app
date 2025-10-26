@@ -172,20 +172,34 @@ class GameLogScreen extends StatelessWidget {
     final title = this.log != null ? "Загруженный журнал игры" : "Журнал игры";
     final log = this.log ?? controller.gameLog;
     final logDescriptions = <String>[];
-    StateChangeGameLogItem? prev;
-    for (final curr in log) {
-      if (curr is! StateChangeGameLogItem) {
-        logDescriptions.addAll(curr.description);
-        continue;
+    
+    // Group events by state changes
+    StateChangeGameLogItem? currentStateChange;
+    final eventsForCurrentState = <BaseGameLogItem>[];
+    
+    for (final item in log) {
+      if (item is StateChangeGameLogItem) {
+        // First, add events that happened before this state change
+        for (final event in eventsForCurrentState) {
+          logDescriptions.addAll(event.description);
+        }
+        eventsForCurrentState.clear();
+        
+        // Then add the state change description if it's significant
+        if (currentStateChange == null || 
+            item.newState.hasStateChanged(currentStateChange.newState)) {
+          logDescriptions.addAll(item.description);
+        }
+        currentStateChange = item;
+      } else {
+        // Collect events for the current state
+        eventsForCurrentState.add(item);
       }
-      if (prev != null && curr.newState.hasStateChanged(prev.newState)) {
-        logDescriptions.addAll(prev.description);
-      }
-      prev = curr;
     }
-    final logLast = log.lastOrNull;
-    if (prev != null && logLast is StateChangeGameLogItem) {
-      logDescriptions.addAll(logLast.description);
+    
+    // Add any remaining events that happened after the last state change
+    for (final event in eventsForCurrentState) {
+      logDescriptions.addAll(event.description);
     }
     return Scaffold(
       appBar: AppBar(

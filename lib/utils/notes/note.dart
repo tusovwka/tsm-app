@@ -4,7 +4,7 @@ import "package:meta/meta.dart";
 
 import "../log.dart";
 
-// part "note.g.dart"; // TODO: Generate by running: flutter pub run build_runner build
+part "note.g.dart";
 
 @HiveType(typeId: 3)
 @immutable
