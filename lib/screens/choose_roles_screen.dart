@@ -239,6 +239,10 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   void _onDeckRoleSelected(PlayerRole role) {
     if (_currentPlayerIndex >= rolesList.length) return;
+    if (_chosenNicknames[_currentPlayerIndex] == null) {
+      // Показываем сообщение, что нужно сначала выбрать игрока
+      return;
+    }
     
     setState(() {
       _assignedRoles[_currentPlayerIndex] = role;
@@ -348,7 +352,36 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 8),
-                    Text("Выберите роль из колоды:"),
+                    DropdownMenu(
+                      expandedInsets: EdgeInsets.zero,
+                      enableFilter: true,
+                      enableSearch: true,
+                      label: const Text("Выберите игрока"),
+                      menuHeight: 256,
+                      inputDecorationTheme: const InputDecorationTheme(
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                      ),
+                      initialSelection: _chosenNicknames[_currentPlayerIndex],
+                      dropdownMenuEntries: [
+                        const DropdownMenuEntry(
+                          value: null,
+                          label: "",
+                          labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        for (final nickname in players.data
+                            .map((p) => p.$2.nickname)
+                            .toList(growable: false)..sort())
+                          DropdownMenuEntry(
+                            value: nickname,
+                            label: nickname,
+                            enabled: !_chosenNicknames.contains(nickname) || _chosenNicknames[_currentPlayerIndex] == nickname,
+                          ),
+                      ],
+                      onSelected: (value) => _onNicknameSelected(_currentPlayerIndex, value),
+                    ),
+                    const SizedBox(height: 8),
+                    Text("Затем выберите роль из колоды:"),
                   ],
                 ),
               ),
@@ -369,10 +402,13 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
             children: _deckRoles.asMap().entries.map((entry) {
               final index = entry.key;
               final role = entry.value;
+              final isEnabled = _chosenNicknames[_currentPlayerIndex] != null;
               return GestureDetector(
-                onTap: () => _onDeckRoleSelected(role),
+                onTap: isEnabled ? () => _onDeckRoleSelected(role) : null,
                 child: Card(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: isEnabled 
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.surfaceVariant,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -382,6 +418,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                           "${index + 1}",
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: isEnabled ? null : Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -389,11 +426,14 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                           _getRoleDisplay(role),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: isEnabled ? null : Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         Text(
                           role.prettyName,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isEnabled ? null : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -420,9 +460,19 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                 : null,
               child: ListTile(
                 title: Text("Игрок ${i + 1}"),
-                subtitle: _assignedRoles[i] != null 
-                  ? Text("Роль: ${_assignedRoles[i]!.prettyName}")
-                  : const Text("Роль не назначена"),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_chosenNicknames[i] != null)
+                      Text("Игрок: ${_chosenNicknames[i]}"),
+                    if (_assignedRoles[i] != null)
+                      Text("Роль: ${_assignedRoles[i]!.prettyName}")
+                    else if (_chosenNicknames[i] != null)
+                      const Text("Роль не назначена")
+                    else
+                      const Text("Игрок не выбран"),
+                  ],
+                ),
                 trailing: _assignedRoles[i] != null
                   ? Chip(
                       label: Text(_getRoleDisplay(_assignedRoles[i])),
@@ -438,6 +488,20 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   Future<void> _onFabPressed(BuildContext context) async {
     if (_isDeckMode) {
+      // Проверяем, что все игроки выбраны
+      final notSelectedPlayers = <int>[];
+      for (var i = 0; i < rolesList.length; i++) {
+        if (_chosenNicknames[i] == null) {
+          notSelectedPlayers.add(i + 1);
+        }
+      }
+      if (notSelectedPlayers.isNotEmpty) {
+        showSnackBar(context, SnackBar(
+          content: Text("Не выбраны игроки: ${notSelectedPlayers.join(", ")}"),
+        ));
+        return;
+      }
+      
       // Проверяем, что все роли назначены
       if (_deckRoles.isNotEmpty) {
         showSnackBar(context, const SnackBar(content: Text("Не все роли назначены игрокам")));
@@ -462,11 +526,16 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       }
       context.read<GameController>()
         ..roles = newRoles
-        ..showRoles = showRoles;
-      if (!context.mounted) {
-        throw ContextNotMountedError();
+        ..nicknames = _chosenNicknames
+        ..memberIds = _chosenMemberIds
+        ..startNewGame(rules: context.read());
+      if (showRoles) {
+        await openRolesPage(context);
+        if (!context.mounted) {
+          throw ContextNotMountedError();
+        }
       }
-      Navigator.of(context).pop();
+      Navigator.pop(context);
       return;
     }
     
