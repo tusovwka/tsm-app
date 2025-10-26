@@ -73,6 +73,8 @@ class GameController with ChangeNotifier {
 
   PlayersView get players => _game.ensureInitialized.players;
 
+  List<Player> get originalPlayers => _game.ensureInitialized.originalPlayers;
+
   void startNewGame({
     required GameRulesModel rules,
   }) {

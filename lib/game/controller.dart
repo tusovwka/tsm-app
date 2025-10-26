@@ -56,6 +56,9 @@ class Game {
   /// Returns game log.
   Iterable<BaseGameLogItem> get log => _log;
 
+  /// Returns the original Player objects (without state information).
+  List<Player> get originalPlayers => _players;
+
   /// Returns convenient players view.
   PlayersView get players => PlayersView(
         players: _players

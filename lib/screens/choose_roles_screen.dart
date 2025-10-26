@@ -71,11 +71,13 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       // Найти соответствующий member_id для выбранного никнейма
       if (value != null) {
         final players = context.read<PlayerRepo>();
-        final player = players.data.firstWhere(
-          (p) => p.$2.nickname == value,
-          orElse: () => ("", players.data.first.$2),
-        );
-        _chosenMemberIds[index] = player.$2.memberId;
+        if (players.data.isNotEmpty) {
+          final player = players.data.firstWhere(
+            (p) => p.$2.nickname == value,
+            orElse: () => players.data.first,
+          );
+          _chosenMemberIds[index] = player.$2.memberId;
+        }
       } else {
         _chosenMemberIds[index] = null;
       }
