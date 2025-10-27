@@ -91,6 +91,7 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<GameController>();
+    final isMobile = MediaQuery.of(context).size.width < 600;
     
     return Scaffold(
       appBar: AppBar(
@@ -120,77 +121,178 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  // Номер и имя игрока
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Игрок $playerNumber",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (player.nickname != null)
-                          Text(
-                            player.nickname!,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        if (hadPPK)
-                          Text(
-                            "ППК",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        else if (player.state.isKicked)
-                          Text(
-                            "Удалён",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.red,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  // Кнопки управления оценкой
-                  Expanded(
-                    flex: 3,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: hadPPK ? null : (rating > min ? () => _changeRating(playerNumber, -0.25) : null),
-                        ),
-                        SizedBox(
-                          width: 60,
-                          child: Text(
-                            rating.toStringAsFixed(2),
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: hadPPK ? Colors.red : null,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: hadPPK ? null : (rating < max ? () => _changeRating(playerNumber, 0.25) : null),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: isMobile ? _buildMobileRatingCard(
+                context, playerNumber, player, hadPPK, rating, min, max,
+              ) : _buildDesktopRatingCard(
+                context, playerNumber, player, hadPPK, rating, min, max,
               ),
             ),
           );
         },
       ),
+    );
+  }
+  
+  Widget _buildDesktopRatingCard(
+    BuildContext context,
+    int playerNumber,
+    Player player,
+    bool hadPPK,
+    double rating,
+    double min,
+    double max,
+  ) {
+    return Row(
+      children: [
+        // Номер и имя игрока
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Игрок $playerNumber",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (player.nickname != null)
+                Text(
+                  player.nickname!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              if (hadPPK)
+                Text(
+                  "ППК",
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              else if (player.state.isKicked)
+                Text(
+                  "Удалён",
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.red,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        // Кнопки управления оценкой
+        Expanded(
+          flex: 3,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove),
+                onPressed: hadPPK ? null : (rating > min ? () => _changeRating(playerNumber, -0.25) : null),
+              ),
+              SizedBox(
+                width: 60,
+                child: Text(
+                  rating.toStringAsFixed(2),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: hadPPK ? Colors.red : null,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: hadPPK ? null : (rating < max ? () => _changeRating(playerNumber, 0.25) : null),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildMobileRatingCard(
+    BuildContext context,
+    int playerNumber,
+    Player player,
+    bool hadPPK,
+    double rating,
+    double min,
+    double max,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Заголовок
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Игрок $playerNumber",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (player.nickname != null)
+                  Text(
+                    player.nickname!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+            if (hadPPK)
+              Text(
+                "ППК",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else if (player.state.isKicked)
+              Text(
+                "Удалён",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.red,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Оценка и слайдер
+        Row(
+          children: [
+            Expanded(
+              child: Slider(
+                value: rating,
+                min: min,
+                max: max,
+                divisions: ((max - min) / 0.25).round(),
+                label: rating.toStringAsFixed(2),
+                onChanged: hadPPK ? null : (value) {
+                  setState(() {
+                    _ratings[playerNumber] = value;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 60,
+              child: Text(
+                rating.toStringAsFixed(2),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: hadPPK ? Colors.red : null,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

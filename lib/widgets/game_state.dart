@@ -188,11 +188,16 @@ class BottomGameStateWidget extends StatelessWidget {
       } else {
         minVotes = 0;
       }
+      
+      // Проверяем, есть ли детальные голоса (именное голосование)
+      final hasDetailedVotes = gameState.detailedVotes != null && 
+                                gameState.detailedVotes!.isNotEmpty;
+      
       return Counter(
         key: ValueKey('${gameState.currentPlayerNumber}_$currentPlayerVotes'),
         min: minVotes,
         max: aliveCount - controller.totalVotes,
-        onValueChanged: controller.vote,
+        onValueChanged: hasDetailedVotes ? null : controller.vote, // Отключаем если именное
         initialValue: currentPlayerVotes,
       );
     }
