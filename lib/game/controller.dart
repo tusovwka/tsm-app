@@ -244,12 +244,25 @@ class Game {
           );
         }
         if (pns.length == 1) {
-          return GameStateWithIterablePlayers(
-            stage: GameStage.dayLastWords,
-            day: state.day,
-            playerStates: state.playerStates,
-            playerNumbers: pns,
-            currentPlayerIndex: 0,
+          // Проверяем, не был ли игрок удален - удаленные не получают последнее слово
+          final playerNumber = pns.single;
+          final playerState = state.playerStates[playerNumber - 1];
+          if (!playerState.isKicked) {
+            return GameStateWithIterablePlayers(
+              stage: GameStage.dayLastWords,
+              day: state.day,
+              playerStates: state.playerStates,
+              playerNumbers: pns,
+              currentPlayerIndex: 0,
+            );
+          }
+          // Игрок удален, сразу переходим к следующей ночи
+          final newPlayers = List.of(state.playerStates);
+          newPlayers[playerNumber - 1] = newPlayers[playerNumber - 1].copyWith(isAlive: false);
+          return GameStateNightKill(
+            day: state.day + 1,
+            playerStates: newPlayers,
+            thisNightKilledPlayerNumber: null,
           );
         }
         if (state.stage == GameStage.preExcuse) {
@@ -319,12 +332,33 @@ class Game {
           throw AssertionError();
         }
         if (maxVotesPlayers.length == 1) {
-          return GameStateWithIterablePlayers(
-            stage: GameStage.dayLastWords,
-            day: state.day,
-            playerStates: state.playerStates,
-            playerNumbers: maxVotesPlayers,
-            currentPlayerIndex: 0,
+          // Проверяем, не был ли игрок удален - удаленные не получают последнее слово
+          final playerNumber = maxVotesPlayers.single;
+          final playerState = state.playerStates[playerNumber - 1];
+          if (!playerState.isKicked) {
+            return GameStateWithIterablePlayers(
+              stage: GameStage.dayLastWords,
+              day: state.day,
+              playerStates: state.playerStates,
+              playerNumbers: maxVotesPlayers,
+              currentPlayerIndex: 0,
+            );
+          }
+          // Игрок удален, сразу переходим к следующей ночи
+          final newPlayers = List.of(state.playerStates);
+          newPlayers[playerNumber - 1] = newPlayers[playerNumber - 1].copyWith(isAlive: false);
+          final wta = winTeamAssumption;
+          if (wta != null) {
+            return GameStateFinish(
+              day: state.day,
+              winner: wta,
+              playerStates: newPlayers,
+            );
+          }
+          return GameStateNightKill(
+            day: state.day + 1,
+            playerStates: newPlayers,
+            thisNightKilledPlayerNumber: null,
           );
         }
         if (state.stage == GameStage.finalVoting && maxVotesPlayers.length == votes.length) {
@@ -377,11 +411,25 @@ class Game {
             thisNightKilledPlayerNumber: null,
           );
         }
+        // Фильтруем удаленных игроков - они не получают последнее слово
+        final notKickedPlayers = pns.where((pn) => !state.playerStates[pn - 1].isKicked).toList();
+        if (notKickedPlayers.isEmpty) {
+          // Все игроки были удалены, переходим к следующей ночи
+          final newPlayers = List.of(state.playerStates);
+          for (final pn in pns) {
+            newPlayers[pn - 1] = newPlayers[pn - 1].copyWith(isAlive: false);
+          }
+          return GameStateNightKill(
+            day: state.day + 1,
+            playerStates: newPlayers,
+            thisNightKilledPlayerNumber: null,
+          );
+        }
         return GameStateWithIterablePlayers(
           stage: GameStage.dayLastWords,
           day: state.day,
           playerStates: state.playerStates,
-          playerNumbers: pns,
+          playerNumbers: notKickedPlayers,
           currentPlayerIndex: 0,
         );
       case GameStateWithIterablePlayers(
@@ -434,20 +482,24 @@ class Game {
         final killedPlayerNumber =
             _log.whereType<StateChangeGameLogItem>().getLastDayKilledPlayerNumber();
         if (killedPlayerNumber != null) {
-          if (state.day == 2 && players.aliveCount >= players.count - 1) {
-            return GameStateBestTurn(
+          // Проверяем, был ли игрок удален - удаленные игроки не получают последнее слово
+          final killedPlayer = state.playerStates[killedPlayerNumber - 1];
+          if (!killedPlayer.isKicked) {
+            if (state.day == 2 && players.aliveCount >= players.count - 1) {
+              return GameStateBestTurn(
+                day: state.day,
+                playerStates: state.playerStates,
+                currentPlayerNumber: killedPlayerNumber,
+                playerNumbers: const [],
+              );
+            }
+            return GameStateWithPlayer(
+              stage: GameStage.nightLastWords,
               day: state.day,
               playerStates: state.playerStates,
               currentPlayerNumber: killedPlayerNumber,
-              playerNumbers: const [],
             );
           }
-          return GameStateWithPlayer(
-            stage: GameStage.nightLastWords,
-            day: state.day,
-            playerStates: state.playerStates,
-            currentPlayerNumber: killedPlayerNumber,
-          );
         }
         if (_consequentDaysWithoutDeaths >= 3) {
           return GameStateFinish(
