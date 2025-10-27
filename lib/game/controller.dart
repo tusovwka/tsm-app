@@ -913,14 +913,16 @@ class Game {
       .map((e) => e.playerNumber)
       .toSet();
 
-  int? get _thisNightKilledPlayer => (_log
-          .whereType<StateChangeGameLogItem>()
-          .where(
-            (e) => e.newState.day == state.day && e.newState.stage == GameStage.nightLastWords,
-          )
-          .firstOrNull
-          ?.newState as GameStateWithPlayer?)
-      ?.currentPlayerNumber;
+  int? get _thisNightKilledPlayer {
+    // Ищем последний GameStateNightKill для текущего дня
+    // Это правильно определяет убитого мафией игрока, даже если он был потом удален
+    for (final item in _log.whereType<StateChangeGameLogItem>().reversed) {
+      if (item.newState is GameStateNightKill && item.newState.day == state.day) {
+        return (item.newState as GameStateNightKill).thisNightKilledPlayerNumber;
+      }
+    }
+    return null;
+  }
 
   bool _hasPlayerBeenMutedForToday(PlayerWithState player) {
     if (player.state.warns != 3) {
