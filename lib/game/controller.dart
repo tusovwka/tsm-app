@@ -694,9 +694,52 @@ class Game {
       return;
     }
     if (currentState is GameStateVoting) {
+      final candidateNumber = currentState.currentPlayerNumber;
+      final detailedVotes = Map<int, Set<int>>.from(
+        currentState.detailedVotes ?? {},
+      );
+      
+      // Получаем текущих голосующих
+      final voters = detailedVotes[candidateNumber] ?? <int>{};
+      final namedVotesCount = voters.length;
+      
+      // Если уменьшаем количество голосов
+      if (count < namedVotesCount) {
+        // Нужно убрать именные голоса
+        final votersToRemove = namedVotesCount - count;
+        final votersList = voters.toList();
+        
+        // Убираем последних голосовавших
+        for (var i = 0; i < votersToRemove; i++) {
+          if (votersList.isNotEmpty) {
+            final removedVoter = votersList.removeLast();
+            voters.remove(removedVoter);
+            
+            // Записываем в лог удаление голоса
+            _log.add(PlayerVotedGameLogItem(
+              day: state.day,
+              voterNumber: removedVoter,
+              candidateNumber: candidateNumber,
+              isVoteAdded: false,
+              stage: currentState.stage,
+            ));
+          }
+        }
+        
+        detailedVotes[candidateNumber] = voters;
+      }
+      
+      // Обновляем состояние с новым количеством голосов и обновленным detailedVotes
+      final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
+      newVotes[candidateNumber] = count;
+      
       _log.add(
         StateChangeGameLogItem(
-          newState: currentState.copyWith(currentPlayerVotes: count),
+          newState: currentState.copyWith(
+            currentPlayerVotes: count,
+            votes: newVotes,
+            detailedVotes: detailedVotes,
+          ),
         ),
       );
       return;
@@ -716,6 +759,14 @@ class Game {
       currentState.detailedVotes ?? {},
     );
     
+    // Проверяем, не голосовал ли игрок уже за другого кандидата
+    for (final entry in detailedVotes.entries) {
+      if (entry.key != candidateNumber && entry.value.contains(voterNumber)) {
+        // Игрок уже голосовал за другого кандидата - нельзя голосовать дважды
+        return;
+      }
+    }
+    
     // Инициализируем set для кандидата если его нет
     if (!detailedVotes.containsKey(candidateNumber)) {
       detailedVotes[candidateNumber] = <int>{};
@@ -731,10 +782,17 @@ class Game {
       voters.remove(voterNumber);
     }
     
-    // Подсчитываем общее количество голосов для обновления счетчика
-    final totalVotesForCandidate = voters.length;
+    // Подсчитываем количество именных голосов
+    final namedVotesCount = voters.length;
+    
+    // Получаем текущее количество голосов (именные + анонимные)
+    final currentTotal = currentState.votes[candidateNumber] ?? 0;
+    
+    // Новое количество голосов = именные голоса (анонимные сохраняются если их было больше)
+    final newTotal = namedVotesCount > currentTotal ? namedVotesCount : currentTotal;
+    
     final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
-    newVotes[candidateNumber] = totalVotesForCandidate;
+    newVotes[candidateNumber] = newTotal;
     
     // Записываем в лог
     _log.add(PlayerVotedGameLogItem(
@@ -752,7 +810,7 @@ class Game {
           detailedVotes: detailedVotes,
           votes: newVotes,
           currentPlayerVotes: candidateNumber == currentState.currentPlayerNumber 
-              ? totalVotesForCandidate 
+              ? newTotal 
               : currentState.currentPlayerVotes,
         ),
       ),

@@ -155,10 +155,27 @@ class _PlayerButtonsState extends State<PlayerButtons> {
         title: const Text("Результат проверки"),
         content: Text("Игрок ${player.number} — $msg"),
       );
-    } else if (controller.state case GameStateVoting(currentPlayerNumber: final candidateNumber)) {
+    } else if (controller.state case GameStateVoting(
+      currentPlayerNumber: final candidateNumber,
+      detailedVotes: final detailedVotes
+    )) {
       // Во время голосования - нажатие на игрока переключает его голос за текущего кандидата
       if (player.state.isAlive) {
-        controller.togglePlayerVote(playerNumber, candidateNumber);
+        // Проверяем, не голосовал ли игрок уже за другого кандидата
+        bool hasVotedForOther = false;
+        if (detailedVotes != null) {
+          for (final entry in detailedVotes.entries) {
+            if (entry.key != candidateNumber && entry.value.contains(playerNumber)) {
+              hasVotedForOther = true;
+              break;
+            }
+          }
+        }
+        
+        // Можно голосовать только если не голосовал за другого кандидата
+        if (!hasVotedForOther || (detailedVotes?[candidateNumber]?.contains(playerNumber) ?? false)) {
+          controller.togglePlayerVote(playerNumber, candidateNumber);
+        }
       }
     } else if (!player.state.isAlive ||
         !controller.state.stage
@@ -200,16 +217,39 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       _ => false,
     };
     final player = controller.players.getByNumber(playerNumber);
+    
+    // Проверяем, можно ли нажимать на этого игрока во время голосования
+    bool canTapDuringVoting = true;
+    if (controller.state case GameStateVoting(
+      currentPlayerNumber: final candidateNumber,
+      detailedVotes: final detailedVotes
+    )) {
+      if (detailedVotes != null) {
+        // Проверяем, не голосовал ли игрок за другого кандидата
+        for (final entry in detailedVotes.entries) {
+          if (entry.key != candidateNumber && entry.value.contains(playerNumber)) {
+            canTapDuringVoting = false;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Определяем можно ли нажимать на игрока
+    final bool canTap;
+    if (controller.state.stage == GameStage.voting || controller.state.stage == GameStage.finalVoting) {
+      canTap = player.state.isAlive && canTapDuringVoting;
+    } else if (controller.state.stage == GameStage.nightCheck) {
+      canTap = true; // Проверки доступны всегда
+    } else {
+      canTap = player.state.isAlive;
+    }
+    
     return PlayerButton(
       playerNumber: player.number,
       isSelected: isSelected,
       isActive: isActive,
-      onTap: player.state.isAlive || 
-              controller.state.stage == GameStage.nightCheck ||
-              controller.state.stage == GameStage.voting ||
-              controller.state.stage == GameStage.finalVoting
-          ? () => _onPlayerButtonTap(context, playerNumber)
-          : null,
+      onTap: canTap ? () => _onPlayerButtonTap(context, playerNumber) : null,
       showRole: widget.showRoles,
       expanded: expanded,
     );
