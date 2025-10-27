@@ -147,6 +147,12 @@ class GameController with ChangeNotifier {
   
   void addTimeout(DateTime start, DateTime end) {
     _timeouts.add((start: start, end: end));
+    
+    // Добавляем таймаут в журнал игры
+    if (_game != null) {
+      _game!.addTimeoutToLog(start, end);
+    }
+    
     _log.debug("Timeout added: ${end.difference(start).inSeconds}s");
     notifyListeners();
   }

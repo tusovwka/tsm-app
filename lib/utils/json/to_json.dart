@@ -124,6 +124,11 @@ extension BaseGameLogItemJson on BaseGameLogItem {
             "isVoteAdded": isVoteAdded,
             "stage": stage.name,
           },
+        TimeoutGameLogItem(:final day, :final start, :final end) => {
+            "day": day,
+            "start": start.toIso8601String(),
+            "end": end.toIso8601String(),
+          },
       };
 }
 

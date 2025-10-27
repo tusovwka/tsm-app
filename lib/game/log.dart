@@ -106,6 +106,22 @@ class PlayerVotedGameLogItem extends BaseGameLogItem {
   });
 }
 
+@immutable
+class TimeoutGameLogItem extends BaseGameLogItem {
+  @override
+  final int day;
+  final DateTime start;
+  final DateTime end;
+  
+  const TimeoutGameLogItem({
+    required this.day,
+    required this.start,
+    required this.end,
+  });
+  
+  Duration get duration => end.difference(start);
+}
+
 class GameLog with IterableMixin<BaseGameLogItem> {
   final _log = <BaseGameLogItem>[];
 

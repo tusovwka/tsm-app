@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 import "../utils/game_controller.dart";
+import "../utils/timer.dart";
 
 class TimeoutScreen extends StatefulWidget {
   const TimeoutScreen({super.key});
@@ -15,11 +16,20 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
   DateTime? _startTime;
+  bool _wasPaused = false;
 
   @override
   void initState() {
     super.initState();
     _startTime = DateTime.now();
+    
+    // Приостанавливаем игровой таймер
+    final timerService = context.read<TimerService>();
+    _wasPaused = timerService.isPaused;
+    if (!_wasPaused) {
+      timerService.pause();
+    }
+    
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -32,6 +42,13 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    
+    // Возобновляем игровой таймер если он не был на паузе
+    final timerService = context.read<TimerService>();
+    if (!_wasPaused && timerService.isPaused) {
+      timerService.resume();
+    }
+    
     super.dispose();
   }
 

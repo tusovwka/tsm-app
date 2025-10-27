@@ -100,6 +100,10 @@ extension _DescribeLogItem on BaseGameLogItem {
         } else {
           result.add("Игрок #$voterNumber убрал голос с игрока #$candidateNumber");
         }
+      case TimeoutGameLogItem(duration: final duration):
+        final minutes = duration.inMinutes;
+        final seconds = duration.inSeconds % 60;
+        result.add("Таймаут: ${minutes}м ${seconds}с");
     }
     return result;
   }

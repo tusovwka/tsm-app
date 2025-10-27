@@ -942,6 +942,16 @@ class Game {
     );
     _editPlayers(newPlayers);
   }
+  
+  void addTimeoutToLog(DateTime start, DateTime end) {
+    _log.add(
+      TimeoutGameLogItem(
+        day: state.day,
+        start: start,
+        end: end,
+      ),
+    );
+  }
 
   int getPlayerWarnCount(int number) => players.getByNumber(number).state.warns;
 

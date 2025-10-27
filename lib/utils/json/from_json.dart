@@ -71,6 +71,13 @@ BaseGameLogItem gameLogFromJson(Map<String, dynamic> json, {required GameLogVers
       stage: GameStage.byName(json["stage"] as String),
     );
   }
+  if (json.containsKey("start") && json.containsKey("end")) {
+    return TimeoutGameLogItem(
+      day: json["day"] as int,
+      start: DateTime.parse(json["start"] as String),
+      end: DateTime.parse(json["end"] as String),
+    );
+  }
   throw ArgumentError.value(json, "json", "Unknown game log item");
 }
 
