@@ -684,8 +684,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         }
       }
       
-        if (!context.mounted) {
-          throw ContextNotMountedError();
+      if (!context.mounted) {
+        throw ContextNotMountedError();
       }
       Navigator.pop(context);
       return;
