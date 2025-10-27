@@ -157,10 +157,20 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       );
     } else if (controller.state case GameStateVoting(
       currentPlayerNumber: final candidateNumber,
-      detailedVotes: final detailedVotes
+      detailedVotes: final detailedVotes,
+      currentPlayerVotes: final currentVotes
     )) {
       // Во время голосования - нажатие на игрока переключает его голос за текущего кандидата
       if (player.state.isAlive) {
+        // Проверяем, используется ли анонимное голосование
+        final hasDetailedVotes = detailedVotes != null && detailedVotes.isNotEmpty;
+        final hasAnonymousVotes = !hasDetailedVotes && (currentVotes ?? 0) > 0;
+        
+        // Если анонимное голосование - нельзя кликать на игроков
+        if (hasAnonymousVotes) {
+          return;
+        }
+        
         // Проверяем, не голосовал ли игрок уже за другого кандидата
         bool hasVotedForOther = false;
         if (detailedVotes != null) {
@@ -222,9 +232,17 @@ class _PlayerButtonsState extends State<PlayerButtons> {
     bool canTapDuringVoting = true;
     if (controller.state case GameStateVoting(
       currentPlayerNumber: final candidateNumber,
-      detailedVotes: final detailedVotes
+      detailedVotes: final detailedVotes,
+      currentPlayerVotes: final currentVotes
     )) {
-      if (detailedVotes != null) {
+      // Проверяем, используется ли анонимное голосование
+      final hasDetailedVotes = detailedVotes != null && detailedVotes.isNotEmpty;
+      final hasAnonymousVotes = !hasDetailedVotes && (currentVotes ?? 0) > 0;
+      
+      // Если анонимное голосование - нельзя кликать на игроков
+      if (hasAnonymousVotes) {
+        canTapDuringVoting = false;
+      } else if (detailedVotes != null) {
         // Проверяем, не голосовал ли игрок за другого кандидата
         for (final entry in detailedVotes.entries) {
           if (entry.key != candidateNumber && entry.value.contains(playerNumber)) {
