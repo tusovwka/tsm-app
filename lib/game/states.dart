@@ -312,6 +312,7 @@ class GameStateVoting extends BaseGameState {
     int? currentPlayerNumber,
     int? currentPlayerVotes,
     Map<int, Set<int>>? detailedVotes,
+    bool clearDetailedVotes = false,
   }) =>
       GameStateVoting(
         stage: stage ?? this.stage,
@@ -320,7 +321,7 @@ class GameStateVoting extends BaseGameState {
         votes: votes ?? this.votes,
         currentPlayerNumber: currentPlayerNumber ?? this.currentPlayerNumber,
         currentPlayerVotes: currentPlayerVotes ?? this.currentPlayerVotes,
-        detailedVotes: detailedVotes ?? this.detailedVotes,
+        detailedVotes: clearDetailedVotes ? null : (detailedVotes ?? this.detailedVotes),
       );
 }
 

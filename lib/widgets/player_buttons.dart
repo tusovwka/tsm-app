@@ -163,7 +163,8 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       // Во время голосования - нажатие на игрока переключает его голос за текущего кандидата
       if (player.state.isAlive) {
         // Проверяем, используется ли анонимное голосование
-        final hasDetailedVotes = detailedVotes != null && detailedVotes.isNotEmpty;
+        final hasDetailedVotes = detailedVotes != null && 
+                                  detailedVotes.values.any((voters) => voters.isNotEmpty);
         final hasAnonymousVotes = !hasDetailedVotes && (currentVotes ?? 0) > 0;
         
         // Если анонимное голосование - нельзя кликать на игроков
@@ -236,7 +237,8 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       currentPlayerVotes: final currentVotes
     )) {
       // Проверяем, используется ли анонимное голосование
-      final hasDetailedVotes = detailedVotes != null && detailedVotes.isNotEmpty;
+      final hasDetailedVotes = detailedVotes != null && 
+                                detailedVotes.values.any((voters) => voters.isNotEmpty);
       final hasAnonymousVotes = !hasDetailedVotes && (currentVotes ?? 0) > 0;
       
       // Если анонимное голосование - нельзя кликать на игроков

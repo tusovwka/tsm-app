@@ -190,8 +190,9 @@ class BottomGameStateWidget extends StatelessWidget {
       }
       
       // Проверяем, есть ли детальные голоса (именное голосование)
+      // Нужно проверить не только наличие Map, но и что в нем есть хоть один голос
       final hasDetailedVotes = gameState.detailedVotes != null && 
-                                gameState.detailedVotes!.isNotEmpty;
+                                gameState.detailedVotes!.values.any((voters) => voters.isNotEmpty);
       
       return Counter(
         key: ValueKey('${gameState.currentPlayerNumber}_$currentPlayerVotes'),

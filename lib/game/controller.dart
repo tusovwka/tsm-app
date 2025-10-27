@@ -705,7 +705,7 @@ class Game {
           newState: currentState.copyWith(
             currentPlayerVotes: count,
             votes: newVotes,
-            detailedVotes: null, // Сбрасываем именные голоса при использовании счетчика
+            clearDetailedVotes: true, // Явно сбрасываем именные голоса
           ),
         ),
       );
