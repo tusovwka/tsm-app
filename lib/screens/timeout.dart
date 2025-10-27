@@ -1,5 +1,6 @@
 import "dart:async";
 import "package:flutter/material.dart";
+import "package:flutter/scheduler.dart";
 import "package:provider/provider.dart";
 
 import "../utils/game_controller.dart";
@@ -46,9 +47,16 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   void dispose() {
     _timer?.cancel();
     
-    // Возобновляем игровой таймер если он не был на паузе
+    // Возобновляем игровой таймер если закрыли через кнопку "Назад"
+    // (если закрыли через "Завершить", то возобновление уже произошло в _endTimeout)
     if (!_wasPaused && _timerService.isPaused) {
-      _timerService.resume();
+      // Используем post-frame callback для гарантированного выполнения после закрытия
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_timerService.isPaused) {
+          // Перезапускаем таймер (это надежнее чем resume)
+          _timerService.restart(paused: false);
+        }
+      });
     }
     
     super.dispose();
@@ -60,13 +68,19 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
     return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
-  void _endTimeout(BuildContext context) {
+  Future<void> _endTimeout(BuildContext context) async {
     final controller = context.read<GameController>();
     controller.addTimeout(_startTime!, DateTime.now());
     
-    // Помечаем что таймер нужно возобновить
-    // Фактическое возобновление произойдет в dispose()
+    // Закрываем экран
     Navigator.pop(context);
+    
+    // Даем время на анимацию закрытия и перезапускаем таймер
+    if (!_wasPaused) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      // Перезапускаем таймер (это надежнее чем resume)
+      _timerService.restart(paused: false);
+    }
   }
 
   @override
