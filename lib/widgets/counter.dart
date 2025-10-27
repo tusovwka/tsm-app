@@ -28,6 +28,11 @@ class _CounterState extends State<Counter> {
   }
 
   VoidCallback? _onButtonPressedFactory({int? delta, int? newValue}) {
+    // Если onValueChanged == null, блокируем кнопки
+    if (widget.onValueChanged == null) {
+      return null;
+    }
+    
     if (delta == null && newValue == null) {
       throw ArgumentError("Either delta or newValue must be provided");
     }
