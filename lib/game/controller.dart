@@ -916,7 +916,7 @@ class Game {
   int? get _thisNightKilledPlayer {
     // Ищем последний GameStateNightKill для текущего дня
     // Это правильно определяет убитого мафией игрока, даже если он был потом удален
-    for (final item in _log.whereType<StateChangeGameLogItem>().reversed) {
+    for (final item in _log.whereType<StateChangeGameLogItem>().toList().reversed) {
       if (item.newState is GameStateNightKill && item.newState.day == state.day) {
         return (item.newState as GameStateNightKill).thisNightKilledPlayerNumber;
       }
