@@ -356,13 +356,16 @@ class Game {
           final int? currentPlayerVotes;
           final bool isLastCandidate = nextPlayerNumber == votes.keys.last;
           
+          // Приводим state к GameStateVoting для доступа к специфичным полям
+          final currentVotingState = state as GameStateVoting;
+          
           // Для именного режима на последнем кандидате автоматически распределяем оставшихся
           Map<int, Set<int>>? newDetailedVotes;
-          if (state is GameStateVoting && state.isNamedVoting == true && isLastCandidate) {
+          if (currentVotingState.isNamedVoting == true && isLastCandidate) {
             // Собираем всех кто уже проголосовал
             final allVoters = <int>{};
-            if (state.detailedVotes != null) {
-              for (final voters in state.detailedVotes!.values) {
+            if (currentVotingState.detailedVotes != null) {
+              for (final voters in currentVotingState.detailedVotes!.values) {
                 allVoters.addAll(voters);
               }
             }
@@ -376,7 +379,7 @@ class Game {
               }
             }
             
-            newDetailedVotes = Map<int, Set<int>>.from(state.detailedVotes ?? {});
+            newDetailedVotes = Map<int, Set<int>>.from(currentVotingState.detailedVotes ?? {});
             newDetailedVotes[nextPlayerNumber] = remainingVoters;
             currentPlayerVotes = remainingVoters.length;
           } else if (isLastCandidate) {
@@ -394,8 +397,8 @@ class Game {
               currentPlayerNumber: nextPlayerNumber,
               votes: newVotes,
               currentPlayerVotes: currentPlayerVotes,
-              detailedVotes: newDetailedVotes ?? (state is GameStateVoting ? state.detailedVotes : null),
-              isNamedVoting: state is GameStateVoting ? state.isNamedVoting : null,
+              detailedVotes: newDetailedVotes ?? currentVotingState.detailedVotes,
+              isNamedVoting: currentVotingState.isNamedVoting,
             );
           }
         }
