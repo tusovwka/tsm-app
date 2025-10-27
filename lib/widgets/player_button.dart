@@ -133,14 +133,26 @@ class PlayerButton extends StatelessWidget {
           actions: [
             MenuAnchor(
               menuChildren: [
-                MenuItemButton(
-                  child: const Text("+ Фол"),
-                  onPressed: () => controller.warnPlayer(playerNumber),
-                ),
-                MenuItemButton(
-                  child: const Text("- Фол"),
-                  onPressed: () => controller.warnMinusPlayer(playerNumber),
-                ),
+                // Действия доступные только во время игры
+                if (controller.isGameActive) ...[
+                  MenuItemButton(
+                    child: const Text("+ Фол"),
+                    onPressed: () => controller.warnPlayer(playerNumber),
+                  ),
+                  MenuItemButton(
+                    child: const Text("- Фол"),
+                    onPressed: () => controller.warnMinusPlayer(playerNumber),
+                  ),
+                  MenuItemButton(
+                    child: const Text("Дисквалификация"),
+                    onPressed: () => controller.kickPlayer(playerNumber),
+                  ),
+                  MenuItemButton(
+                    child: const Text("ППК"),
+                    onPressed: () => controller.kickPlayerTeam(playerNumber),
+                  ),
+                ],
+                // ЖК доступны всегда (и постфактум)
                 MenuItemButton(
                   child: const Text("+ ЖК"),
                   onPressed: () => controller.addYellowCard(playerNumber),
@@ -149,25 +161,15 @@ class PlayerButton extends StatelessWidget {
                   child: const Text("- ЖК"),
                   onPressed: () => controller.removeYellowCard(playerNumber),
                 ),
-                MenuItemButton(
-                  child: const Text("Дисквалификация"),
-                  onPressed: () => controller.kickPlayer(playerNumber),
-                ),
-                MenuItemButton(
-                  child: const Text("ППК"),
-                  onPressed: () => controller.kickPlayerTeam(playerNumber),
-                ),
               ],
               builder: (context, menuController, _) => TextButton(
-                onPressed: controller.isGameActive
-                    ? () {
-                        if (menuController.isOpen) {
-                          menuController.close();
-                        } else {
-                          menuController.open();
-                        }
-                      }
-                    : null,
+                onPressed: () {
+                  if (menuController.isOpen) {
+                    menuController.close();
+                  } else {
+                    menuController.open();
+                  }
+                },
                 child: const Text("Действия"),
               ),
             ),

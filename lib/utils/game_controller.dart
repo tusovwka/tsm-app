@@ -145,6 +145,11 @@ class GameController with ChangeNotifier {
     notifyListeners();
   }
 
+  void togglePlayerVote(int voterNumber, int candidateNumber) {
+    _game.ensureInitialized.togglePlayerVote(voterNumber, candidateNumber);
+    notifyListeners();
+  }
+
   void togglePlayerSelected(int player) {
     _game.ensureInitialized.togglePlayerSelected(player);
     notifyListeners();

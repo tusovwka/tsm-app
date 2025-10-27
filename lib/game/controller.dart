@@ -704,6 +704,61 @@ class Game {
     throw StateError("Can't vote in state ${state.stage}");
   }
 
+  /// Переключает голос игрока [voterNumber] за кандидата [candidateNumber]
+  void togglePlayerVote(int voterNumber, int candidateNumber) {
+    final currentState = state;
+    if (currentState is! GameStateVoting) {
+      throw StateError("Can't vote in state ${state.stage}");
+    }
+    
+    // Инициализируем detailedVotes если его нет
+    final detailedVotes = Map<int, Set<int>>.from(
+      currentState.detailedVotes ?? {},
+    );
+    
+    // Инициализируем set для кандидата если его нет
+    if (!detailedVotes.containsKey(candidateNumber)) {
+      detailedVotes[candidateNumber] = <int>{};
+    }
+    
+    // Переключаем голос
+    final voters = detailedVotes[candidateNumber]!;
+    final isVoteAdded = !voters.contains(voterNumber);
+    
+    if (isVoteAdded) {
+      voters.add(voterNumber);
+    } else {
+      voters.remove(voterNumber);
+    }
+    
+    // Подсчитываем общее количество голосов для обновления счетчика
+    final totalVotesForCandidate = voters.length;
+    final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
+    newVotes[candidateNumber] = totalVotesForCandidate;
+    
+    // Записываем в лог
+    _log.add(PlayerVotedGameLogItem(
+      day: state.day,
+      voterNumber: voterNumber,
+      candidateNumber: candidateNumber,
+      isVoteAdded: isVoteAdded,
+      stage: currentState.stage,
+    ));
+    
+    // Обновляем состояние
+    _log.add(
+      StateChangeGameLogItem(
+        newState: currentState.copyWith(
+          detailedVotes: detailedVotes,
+          votes: newVotes,
+          currentPlayerVotes: candidateNumber == currentState.currentPlayerNumber 
+              ? totalVotesForCandidate 
+              : currentState.currentPlayerVotes,
+        ),
+      ),
+    );
+  }
+
   void warnPlayer(int number) {
     if (!isActive) {
       throw StateError("Can't warn player in state ${state.stage}");

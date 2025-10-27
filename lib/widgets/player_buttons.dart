@@ -155,6 +155,11 @@ class _PlayerButtonsState extends State<PlayerButtons> {
         title: const Text("Результат проверки"),
         content: Text("Игрок ${player.number} — $msg"),
       );
+    } else if (controller.state case GameStateVoting(currentPlayerNumber: final candidateNumber)) {
+      // Во время голосования - нажатие на игрока переключает его голос за текущего кандидата
+      if (player.state.isAlive) {
+        controller.togglePlayerVote(playerNumber, candidateNumber);
+      }
     } else if (!player.state.isAlive ||
         !controller.state.stage
             .isAnyOf(const [GameStage.nightKill, GameStage.bestTurn, GameStage.speaking])) {
@@ -189,6 +194,9 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       GameStateBestTurn(playerNumbers: final playerNumbers) => playerNumbers.contains(playerNumber),
       GameStateNightKill(thisNightKilledPlayerNumber: final thisNightKilledPlayer) =>
         thisNightKilledPlayer == playerNumber,
+      GameStateVoting(currentPlayerNumber: final candidateNumber, detailedVotes: final detailedVotes) =>
+        // Зеленым подсвечиваем игроков, которые проголосовали за текущего кандидата
+        detailedVotes?[candidateNumber]?.contains(playerNumber) ?? false,
       _ => false,
     };
     final player = controller.players.getByNumber(playerNumber);
@@ -196,7 +204,10 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       playerNumber: player.number,
       isSelected: isSelected,
       isActive: isActive,
-      onTap: player.state.isAlive || controller.state.stage == GameStage.nightCheck
+      onTap: player.state.isAlive || 
+              controller.state.stage == GameStage.nightCheck ||
+              controller.state.stage == GameStage.voting ||
+              controller.state.stage == GameStage.finalVoting
           ? () => _onPlayerButtonTap(context, playerNumber)
           : null,
       showRole: widget.showRoles,

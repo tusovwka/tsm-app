@@ -257,6 +257,7 @@ class GameStateSpeaking extends BaseGameState {
 
 /// Represents state with [currentPlayerNumber], [currentPlayerVotes] and total [votes].
 /// [votes] is a count of votes for each player, or `null` if player wasn't voted against yet.
+/// [detailedVotes] (optional) - map of candidate -> set of voters for detailed voting
 ///
 /// [stage] can be [GameStage.voting] or [GameStage.finalVoting].
 @immutable
@@ -264,6 +265,8 @@ class GameStateVoting extends BaseGameState {
   final LinkedHashMap<int, int?> votes;
   final int currentPlayerNumber;
   final int? currentPlayerVotes;
+  /// Детальные голоса: кандидат -> список голосующих за него
+  final Map<int, Set<int>>? detailedVotes;
 
   const GameStateVoting({
     required super.stage,
@@ -272,6 +275,7 @@ class GameStateVoting extends BaseGameState {
     required this.votes,
     required this.currentPlayerNumber,
     required this.currentPlayerVotes,
+    this.detailedVotes,
   }) : assert(
           stage == GameStage.voting || stage == GameStage.finalVoting,
           "Invalid stage for GameStateVoting: $stage",
@@ -287,11 +291,12 @@ class GameStateVoting extends BaseGameState {
           playerStates == other.playerStates &&
           votes == other.votes &&
           currentPlayerNumber == other.currentPlayerNumber &&
-          currentPlayerVotes == other.currentPlayerVotes;
+          currentPlayerVotes == other.currentPlayerVotes &&
+          detailedVotes == other.detailedVotes;
 
   @override
   int get hashCode =>
-      Object.hash(stage, day, playerStates, votes, currentPlayerNumber, currentPlayerVotes);
+      Object.hash(stage, day, playerStates, votes, currentPlayerNumber, currentPlayerVotes, detailedVotes);
 
   @override
   bool hasStateChanged(BaseGameState oldState) =>
@@ -306,6 +311,7 @@ class GameStateVoting extends BaseGameState {
     LinkedHashMap<int, int?>? votes,
     int? currentPlayerNumber,
     int? currentPlayerVotes,
+    Map<int, Set<int>>? detailedVotes,
   }) =>
       GameStateVoting(
         stage: stage ?? this.stage,
@@ -314,6 +320,7 @@ class GameStateVoting extends BaseGameState {
         votes: votes ?? this.votes,
         currentPlayerNumber: currentPlayerNumber ?? this.currentPlayerNumber,
         currentPlayerVotes: currentPlayerVotes ?? this.currentPlayerVotes,
+        detailedVotes: detailedVotes ?? this.detailedVotes,
       );
 }
 
