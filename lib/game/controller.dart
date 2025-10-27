@@ -682,7 +682,7 @@ class Game {
     throw StateError("Can't toggle player in state ${state.stage}");
   }
 
-  /// Vote for current player with [count] votes.
+  /// Vote for current player with [count] votes (anonymous voting).
   void vote(int count) {
     final currentState = state;
     if (currentState is GameStateKnockoutVoting) {
@@ -695,41 +695,8 @@ class Game {
     }
     if (currentState is GameStateVoting) {
       final candidateNumber = currentState.currentPlayerNumber;
-      final detailedVotes = Map<int, Set<int>>.from(
-        currentState.detailedVotes ?? {},
-      );
       
-      // Получаем текущих голосующих
-      final voters = detailedVotes[candidateNumber] ?? <int>{};
-      final namedVotesCount = voters.length;
-      
-      // Если уменьшаем количество голосов
-      if (count < namedVotesCount) {
-        // Нужно убрать именные голоса
-        final votersToRemove = namedVotesCount - count;
-        final votersList = voters.toList();
-        
-        // Убираем последних голосовавших
-        for (var i = 0; i < votersToRemove; i++) {
-          if (votersList.isNotEmpty) {
-            final removedVoter = votersList.removeLast();
-            voters.remove(removedVoter);
-            
-            // Записываем в лог удаление голоса
-            _log.add(PlayerVotedGameLogItem(
-              day: state.day,
-              voterNumber: removedVoter,
-              candidateNumber: candidateNumber,
-              isVoteAdded: false,
-              stage: currentState.stage,
-            ));
-          }
-        }
-        
-        detailedVotes[candidateNumber] = voters;
-      }
-      
-      // Обновляем состояние с новым количеством голосов и обновленным detailedVotes
+      // Обновляем состояние БЕЗ detailedVotes (анонимное голосование)
       final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
       newVotes[candidateNumber] = count;
       
@@ -738,7 +705,7 @@ class Game {
           newState: currentState.copyWith(
             currentPlayerVotes: count,
             votes: newVotes,
-            detailedVotes: detailedVotes,
+            detailedVotes: null, // Сбрасываем именные голоса при использовании счетчика
           ),
         ),
       );
@@ -747,7 +714,7 @@ class Game {
     throw StateError("Can't vote in state ${state.stage}");
   }
 
-  /// Переключает голос игрока [voterNumber] за кандидата [candidateNumber]
+  /// Переключает голос игрока [voterNumber] за кандидата [candidateNumber] (named voting).
   void togglePlayerVote(int voterNumber, int candidateNumber) {
     final currentState = state;
     if (currentState is! GameStateVoting) {
@@ -785,14 +752,8 @@ class Game {
     // Подсчитываем количество именных голосов
     final namedVotesCount = voters.length;
     
-    // Получаем текущее количество голосов (именные + анонимные)
-    final currentTotal = currentState.votes[candidateNumber] ?? 0;
-    
-    // Новое количество голосов = именные голоса (анонимные сохраняются если их было больше)
-    final newTotal = namedVotesCount > currentTotal ? namedVotesCount : currentTotal;
-    
     final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
-    newVotes[candidateNumber] = newTotal;
+    newVotes[candidateNumber] = namedVotesCount;
     
     // Записываем в лог
     _log.add(PlayerVotedGameLogItem(
@@ -810,7 +771,7 @@ class Game {
           detailedVotes: detailedVotes,
           votes: newVotes,
           currentPlayerVotes: candidateNumber == currentState.currentPlayerNumber 
-              ? newTotal 
+              ? namedVotesCount 
               : currentState.currentPlayerVotes,
         ),
       ),

@@ -111,6 +111,7 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
         itemBuilder: (context, index) {
           final playerNumber = index + 1;
           final player = controller.players.getByNumber(playerNumber);
+          final hadPPK = _checkIfPlayerHadPPK(playerNumber);
           final rating = _ratings[playerNumber]!;
           final min = _getMinRating(playerNumber);
           final max = _getMaxRating(playerNumber);
@@ -138,7 +139,15 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
                             player.nickname!,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
-                        if (player.state.isKicked)
+                        if (hadPPK)
+                          Text(
+                            "ППК",
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        else if (player.state.isKicked)
                           Text(
                             "Удалён",
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -156,7 +165,7 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.remove),
-                          onPressed: rating > min ? () => _changeRating(playerNumber, -0.25) : null,
+                          onPressed: hadPPK ? null : (rating > min ? () => _changeRating(playerNumber, -0.25) : null),
                         ),
                         SizedBox(
                           width: 60,
@@ -164,13 +173,14 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
                             rating.toStringAsFixed(2),
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: hadPPK ? Colors.red : null,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.add),
-                          onPressed: rating < max ? () => _changeRating(playerNumber, 0.25) : null,
+                          onPressed: hadPPK ? null : (rating < max ? () => _changeRating(playerNumber, 0.25) : null),
                         ),
                       ],
                     ),

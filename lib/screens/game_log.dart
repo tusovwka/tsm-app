@@ -39,8 +39,17 @@ extension _DescribeLogItem on BaseGameLogItem {
             if (accusations[pn] != null) {
               result.add("Игрок #$pn выставил на голосование игрока #${accusations[pn]}");
             }
-          case GameStateVoting(currentPlayerNumber: final pn, currentPlayerVotes: final votes):
-            result.add("За игрока #$pn отдано голосов: ${votes ?? 0}");
+          case GameStateVoting(
+            currentPlayerNumber: final pn, 
+            currentPlayerVotes: final votes,
+            detailedVotes: final detailedVotes
+          ):
+            if (detailedVotes != null && detailedVotes[pn] != null && detailedVotes[pn]!.isNotEmpty) {
+              final voters = detailedVotes[pn]!.toList()..sort();
+              result.add("Игрок #$pn получил ${votes ?? 0} голосов: {${voters.join(', ')}}");
+            } else {
+              result.add("За игрока #$pn отдано голосов: ${votes ?? 0}");
+            }
           case GameStateKnockoutVoting(votes: final votes):
             result.add("За подъём всех игроков отдано голосов: $votes");
           case GameStateBestTurn(currentPlayerNumber: final pn, playerNumbers: final pns):
