@@ -227,9 +227,11 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     setState(() {
       _isDeckMode = !_isDeckMode;
       if (_isDeckMode) {
-        _shuffleDeck();
+        // Очищаем колоду и назначения при переключении в режим колоды
+        _deckRoles.clear();
         _currentPlayerIndex = 0;
         _assignedRoles.fillRange(0, _assignedRoles.length, null);
+        _shuffleDeck();
       }
       _isModified = true;
     });
@@ -274,7 +276,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       PlayerRole.sheriff => "Ш",
       PlayerRole.don => "Д", 
       PlayerRole.mafia => "М",
-      PlayerRole.citizen => "😊",
+      PlayerRole.citizen => "👍",
     };
   }
 
@@ -356,6 +358,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
 
   Widget _buildDeckMode(PlayerRepo players) {
     return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
         // Колонка с игроками
         Expanded(
