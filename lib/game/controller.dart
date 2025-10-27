@@ -739,7 +739,7 @@ class Game {
     newPlayers[i] = newPlayers[i].copyWith(
       yellowCards: newYellowCards,
       isAlive: newYellowCards < 2,
-      isKicked: newYellowCards >= 2,
+      isKicked: newYellowCards == 2,
     );
     _log.add(
       PlayerYellowCardsChangedGameLogItem(
