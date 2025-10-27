@@ -1,10 +1,8 @@
 import "dart:async";
 import "package:flutter/material.dart";
-import "package:flutter/scheduler.dart";
 import "package:provider/provider.dart";
 
 import "../utils/game_controller.dart";
-import "../utils/timer.dart";
 
 class TimeoutScreen extends StatefulWidget {
   const TimeoutScreen({super.key});
@@ -17,22 +15,11 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
   DateTime? _startTime;
-  bool _wasPaused = false;
-  late TimerService _timerService;
 
   @override
   void initState() {
     super.initState();
     _startTime = DateTime.now();
-    
-    // Сохраняем ссылку на TimerService
-    _timerService = context.read<TimerService>();
-    
-    // Приостанавливаем игровой таймер
-    _wasPaused = _timerService.isPaused;
-    if (!_wasPaused) {
-      _timerService.pause();
-    }
     
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -48,28 +35,6 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
     _timer?.cancel();
     super.dispose();
   }
-  
-  void _resumeTimerIfNeeded() {
-    if (!_wasPaused) {
-      // Пытаемся возобновить несколько раз с задержками
-      // чтобы гарантировать что таймер возобновится
-      Future.delayed(const Duration(milliseconds: 10), () {
-        if (_timerService.isPaused) {
-          _timerService.resume();
-        }
-      });
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_timerService.isPaused) {
-          _timerService.resume();
-        }
-      });
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (_timerService.isPaused) {
-          _timerService.resume();
-        }
-      });
-    }
-  }
 
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
@@ -80,30 +45,15 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   void _endTimeout(BuildContext context) {
     final controller = context.read<GameController>();
     controller.addTimeout(_startTime!, DateTime.now());
-    _resumeTimerIfNeeded();
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          _resumeTimerIfNeeded();
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Таймаут"),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              _resumeTimerIfNeeded();
-              Navigator.pop(context);
-            },
-          ),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Таймаут"),
+      ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +84,6 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 }
