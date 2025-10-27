@@ -61,6 +61,13 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   void _endTimeout(BuildContext context) {
     final controller = context.read<GameController>();
     controller.addTimeout(_startTime!, DateTime.now());
+    
+    // Возобновляем игровой таймер если он не был на паузе
+    final timerService = context.read<TimerService>();
+    if (!_wasPaused && timerService.isPaused) {
+      timerService.resume();
+    }
+    
     Navigator.pop(context);
   }
 
