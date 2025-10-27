@@ -116,4 +116,43 @@ class TusovwkaApiClient {
       return false;
     }
   }
+
+  /// Публикует игру на сервер
+  Future<void> addGame(Map<String, dynamic> gameData, {String? cookie}) async {
+    try {
+      _log.info("Publishing game to API...");
+      
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+      
+      if (cookie != null && cookie.isNotEmpty) {
+        headers["Cookie"] = cookie;
+      }
+      
+      final response = await _client
+          .post(
+            Uri.parse("$_baseUrl/addGame"),
+            headers: headers,
+            body: json.encode(gameData),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        _log.info("Successfully published game to API");
+      } else {
+        throw TusovwkaApiException(
+          "Failed to publish game: ${response.reasonPhrase}",
+          response.statusCode,
+        );
+      }
+    } on http.ClientException catch (e) {
+      _log.error("Network error while publishing game: $e");
+      throw TusovwkaApiException("Network error: ${e.message}");
+    } catch (e) {
+      _log.error("Unexpected error while publishing game: $e");
+      throw TusovwkaApiException("Unexpected error: $e");
+    }
+  }
 }

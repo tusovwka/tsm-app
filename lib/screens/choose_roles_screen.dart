@@ -684,11 +684,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         }
       }
       
-      // Переходим к первой ночи (начинаем игру)
-      controller.setNextState();
-      
-      if (!context.mounted) {
-        throw ContextNotMountedError();
+        if (!context.mounted) {
+          throw ContextNotMountedError();
       }
       Navigator.pop(context);
       return;
@@ -729,9 +726,6 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         }
       }
     }
-    
-    // Переходим к первой ночи (начинаем игру)
-    controller.setNextState();
     
     if (!context.mounted) {
       throw ContextNotMountedError();

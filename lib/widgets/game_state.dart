@@ -1,18 +1,25 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
+import "package:intl/intl.dart";
 import "package:provider/provider.dart";
 
 import "../game/player.dart";
 import "../game/states.dart";
+import "../utils/api/tusovwka_api.dart";
+import "../utils/db/repo.dart";
 import "../utils/errors.dart";
 import "../utils/game_controller.dart";
+import "../utils/load_save_file.dart";
 import "../utils/navigation.dart";
 import "../utils/ui.dart";
+import "../utils/versioned/game_log.dart";
 import "confirmation_dialog.dart";
 import "counter.dart";
 import "player_timer.dart";
 import "restart_dialog.dart";
+
+final _fileNameDateFormat = DateFormat("yyyy-MM-dd_HH-mm-ss");
 
 class GameStateInfo extends StatelessWidget {
   const GameStateInfo({super.key});
@@ -63,6 +70,56 @@ class BottomGameStateWidget extends StatelessWidget {
       throw ContextNotMountedError();
     }
     await openRoleChooserPage(context);
+  }
+
+  Future<void> _onPublishGamePressed(BuildContext context, GameController controller) async {
+    final vgl = VersionedGameLog(
+      GameLogWithPlayers(
+        log: controller.gameLog,
+        players: controller.originalPlayers,
+        gameType: controller.gameType,
+        gameImportance: controller.gameImportance,
+      ),
+    );
+    
+    try {
+      final playerRepo = context.read<PlayerRepo>();
+      final apiClient = TusovwkaApiClient();
+      
+      // Получаем cookie из репозитория (если есть)
+      // TODO: Нужно добавить хранение cookie в репозитории или настройках
+      await apiClient.addGame(vgl.toJson());
+      
+      if (!context.mounted) {
+        return;
+      }
+      showSnackBar(context, const SnackBar(content: Text("Игра успешно опубликована!")));
+    } catch (e) {
+      if (!context.mounted) {
+        return;
+      }
+      showSnackBar(
+        context,
+        SnackBar(content: Text("Ошибка при публикации игры: $e")),
+      );
+    }
+  }
+
+  Future<void> _onDownloadGamePressed(BuildContext context, GameController controller) async {
+    final vgl = VersionedGameLog(
+      GameLogWithPlayers(
+        log: controller.gameLog,
+        players: controller.originalPlayers,
+        gameType: controller.gameType,
+        gameImportance: controller.gameImportance,
+      ),
+    );
+    final fileName = "mafia_game_log_${_fileNameDateFormat.format(DateTime.now())}";
+    final wasSaved = await saveJsonFile(vgl.toJson(), filename: fileName);
+    if (!context.mounted || !wasSaved) {
+      return;
+    }
+    showSnackBar(context, const SnackBar(content: Text("Игра скачана")));
   }
 
   @override
@@ -149,6 +206,23 @@ class BottomGameStateWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(resultText, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: () => _onPublishGamePressed(context, controller),
+                icon: const Icon(Icons.cloud_upload),
+                label: const Text("Опубликовать"),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () => _onDownloadGamePressed(context, controller),
+                icon: const Icon(Icons.download),
+                label: const Text("Скачать"),
+              ),
+            ],
+          ),
           TextButton(
             onPressed: () async {
               final restartGame = await showDialog<bool>(
