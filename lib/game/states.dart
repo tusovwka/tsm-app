@@ -267,6 +267,8 @@ class GameStateVoting extends BaseGameState {
   final int? currentPlayerVotes;
   /// Детальные голоса: кандидат -> список голосующих за него
   final Map<int, Set<int>>? detailedVotes;
+  /// Режим голосования: true - именной (с выбором игроков), false - анонимный (счетчик)
+  final bool? isNamedVoting;
 
   const GameStateVoting({
     required super.stage,
@@ -276,6 +278,7 @@ class GameStateVoting extends BaseGameState {
     required this.currentPlayerNumber,
     required this.currentPlayerVotes,
     this.detailedVotes,
+    this.isNamedVoting,
   }) : assert(
           stage == GameStage.voting || stage == GameStage.finalVoting,
           "Invalid stage for GameStateVoting: $stage",
@@ -292,11 +295,12 @@ class GameStateVoting extends BaseGameState {
           votes == other.votes &&
           currentPlayerNumber == other.currentPlayerNumber &&
           currentPlayerVotes == other.currentPlayerVotes &&
-          detailedVotes == other.detailedVotes;
+          detailedVotes == other.detailedVotes &&
+          isNamedVoting == other.isNamedVoting;
 
   @override
   int get hashCode =>
-      Object.hash(stage, day, playerStates, votes, currentPlayerNumber, currentPlayerVotes, detailedVotes);
+      Object.hash(stage, day, playerStates, votes, currentPlayerNumber, currentPlayerVotes, detailedVotes, isNamedVoting);
 
   @override
   bool hasStateChanged(BaseGameState oldState) =>
@@ -313,6 +317,7 @@ class GameStateVoting extends BaseGameState {
     int? currentPlayerVotes,
     Map<int, Set<int>>? detailedVotes,
     bool clearDetailedVotes = false,
+    bool? isNamedVoting,
   }) =>
       GameStateVoting(
         stage: stage ?? this.stage,
@@ -322,6 +327,7 @@ class GameStateVoting extends BaseGameState {
         currentPlayerNumber: currentPlayerNumber ?? this.currentPlayerNumber,
         currentPlayerVotes: currentPlayerVotes ?? this.currentPlayerVotes,
         detailedVotes: clearDetailedVotes ? null : (detailedVotes ?? this.detailedVotes),
+        isNamedVoting: isNamedVoting ?? this.isNamedVoting,
       );
 }
 

@@ -189,16 +189,14 @@ class BottomGameStateWidget extends StatelessWidget {
         minVotes = 0;
       }
       
-      // Проверяем, есть ли детальные голоса (именное голосование)
-      // Нужно проверить не только наличие Map, но и что в нем есть хоть один голос
-      final hasDetailedVotes = gameState.detailedVotes != null && 
-                                gameState.detailedVotes!.values.any((voters) => voters.isNotEmpty);
+      // Проверяем режим голосования
+      final isNamedVoting = gameState.isNamedVoting ?? false;
       
       return Counter(
-        key: ValueKey('${gameState.currentPlayerNumber}_${currentPlayerVotes}_$hasDetailedVotes'),
+        key: ValueKey('${gameState.currentPlayerNumber}_${currentPlayerVotes}_$isNamedVoting'),
         min: minVotes,
         max: aliveCount - controller.totalVotes,
-        onValueChanged: hasDetailedVotes ? null : controller.vote, // Отключаем если именное
+        onValueChanged: isNamedVoting ? null : controller.vote, // Отключаем если именное
         initialValue: currentPlayerVotes,
       );
     }

@@ -354,11 +354,37 @@ class Game {
         if (nextPlayerNumber != null) {
           final newVotes = LinkedHashMap.of(votes)..addAll({pn: pv ?? 0});
           final int? currentPlayerVotes;
-          if (nextPlayerNumber == votes.keys.last) {
+          final bool isLastCandidate = nextPlayerNumber == votes.keys.last;
+          
+          // Для именного режима на последнем кандидате автоматически распределяем оставшихся
+          Map<int, Set<int>>? newDetailedVotes;
+          if (state is GameStateVoting && state.isNamedVoting == true && isLastCandidate) {
+            // Собираем всех кто уже проголосовал
+            final allVoters = <int>{};
+            if (state.detailedVotes != null) {
+              for (final voters in state.detailedVotes!.values) {
+                allVoters.addAll(voters);
+              }
+            }
+            
+            // Оставшиеся игроки - это живые игроки минус те кто уже проголосовал
+            final remainingVoters = <int>{};
+            for (var i = 1; i <= 10; i++) {
+              final playerState = state.playerStates[i - 1];
+              if (playerState.isAlive && !allVoters.contains(i)) {
+                remainingVoters.add(i);
+              }
+            }
+            
+            newDetailedVotes = Map<int, Set<int>>.from(state.detailedVotes ?? {});
+            newDetailedVotes[nextPlayerNumber] = remainingVoters;
+            currentPlayerVotes = remainingVoters.length;
+          } else if (isLastCandidate) {
             currentPlayerVotes = players.aliveCount - newVotes.values.nonNulls.sum;
           } else {
             currentPlayerVotes = null;
           }
+          
           if (!_config.alwaysContinueVoting && maxVotesPlayers == null ||
               _config.alwaysContinueVoting) {
             return GameStateVoting(
@@ -368,6 +394,8 @@ class Game {
               currentPlayerNumber: nextPlayerNumber,
               votes: newVotes,
               currentPlayerVotes: currentPlayerVotes,
+              detailedVotes: newDetailedVotes ?? (state is GameStateVoting ? state.detailedVotes : null),
+              isNamedVoting: state is GameStateVoting ? state.isNamedVoting : null,
             );
           }
         }
@@ -694,6 +722,11 @@ class Game {
       return;
     }
     if (currentState is GameStateVoting) {
+      // Проверяем, не установлен ли уже именной режим
+      if (currentState.isNamedVoting == true) {
+        return; // Блокируем анонимное голосование если режим именной
+      }
+      
       final candidateNumber = currentState.currentPlayerNumber;
       
       // Обновляем состояние БЕЗ detailedVotes (анонимное голосование)
@@ -706,6 +739,7 @@ class Game {
             currentPlayerVotes: count,
             votes: newVotes,
             clearDetailedVotes: true, // Явно сбрасываем именные голоса
+            isNamedVoting: false, // Устанавливаем анонимный режим
           ),
         ),
       );
@@ -719,6 +753,11 @@ class Game {
     final currentState = state;
     if (currentState is! GameStateVoting) {
       throw StateError("Can't vote in state ${state.stage}");
+    }
+    
+    // Проверяем, не установлен ли уже анонимный режим
+    if (currentState.isNamedVoting == false) {
+      return; // Блокируем именное голосование если режим анонимный
     }
     
     // Инициализируем detailedVotes если его нет
@@ -773,6 +812,7 @@ class Game {
           currentPlayerVotes: candidateNumber == currentState.currentPlayerNumber 
               ? namedVotesCount 
               : currentState.currentPlayerVotes,
+          isNamedVoting: true, // Устанавливаем именной режим
         ),
       ),
     );
