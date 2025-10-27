@@ -46,20 +46,13 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    
-    // Возобновляем игровой таймер если закрыли через кнопку "Назад"
-    // (если закрыли через "Завершить", то возобновление уже произошло в _endTimeout)
-    if (!_wasPaused && _timerService.isPaused) {
-      // Используем post-frame callback для гарантированного выполнения после закрытия
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_timerService.isPaused) {
-          // Перезапускаем таймер (это надежнее чем resume)
-          _timerService.restart(paused: false);
-        }
-      });
-    }
-    
     super.dispose();
+  }
+  
+  void _resumeTimerIfNeeded() {
+    if (!_wasPaused && _timerService.isPaused) {
+      _timerService.restart(paused: false);
+    }
   }
 
   String _formatDuration(Duration duration) {
@@ -68,56 +61,62 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
     return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
-  Future<void> _endTimeout(BuildContext context) async {
+  void _endTimeout(BuildContext context) {
     final controller = context.read<GameController>();
     controller.addTimeout(_startTime!, DateTime.now());
-    
-    // Закрываем экран
+    _resumeTimerIfNeeded();
     Navigator.pop(context);
-    
-    // Даем время на анимацию закрытия и перезапускаем таймер
-    if (!_wasPaused) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      // Перезапускаем таймер (это надежнее чем resume)
-      _timerService.restart(paused: false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Таймаут"),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.timer,
-              size: 100,
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              _formatDuration(_elapsed),
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    fontSize: 72,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              onPressed: () => _endTimeout(context),
-              icon: const Icon(Icons.stop),
-              label: const Text("Завершить таймаут"),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                textStyle: const TextStyle(fontSize: 20),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _resumeTimerIfNeeded();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Таймаут"),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _resumeTimerIfNeeded();
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.timer,
+                size: 100,
+                color: Colors.blue,
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Text(
+                _formatDuration(_elapsed),
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      fontSize: 72,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton.icon(
+                onPressed: () => _endTimeout(context),
+                icon: const Icon(Icons.stop),
+                label: const Text("Завершить таймаут"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  textStyle: const TextStyle(fontSize: 20),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
