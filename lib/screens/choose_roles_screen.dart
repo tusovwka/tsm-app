@@ -674,13 +674,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       // Начисляем фолы для тренировочных игр
       if (_gameType == GameType.training) {
         for (var i = 1; i <= 10; i++) {
-          final currentWarns = controller.getPlayerWarnCount(i);
-          if (currentWarns == 2) {
-            controller.warnPlayer(i); // Добавляем 1 фол
-          } else {
-            controller.warnPlayer(i); // Добавляем 2 фола
-            controller.warnPlayer(i);
-          }
+          controller.warnPlayer(i); // Добавляем 2 фола
+          controller.warnPlayer(i);
         }
       }
       
@@ -717,13 +712,8 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     // Начисляем фолы для тренировочных игр
     if (_gameType == GameType.training) {
       for (var i = 1; i <= 10; i++) {
-        final currentWarns = controller.getPlayerWarnCount(i);
-        if (currentWarns == 2) {
-          controller.warnPlayer(i); // Добавляем 1 фол
-        } else {
-          controller.warnPlayer(i); // Добавляем 2 фола
-          controller.warnPlayer(i);
-        }
+        controller.warnPlayer(i); // Добавляем 2 фола
+        controller.warnPlayer(i);
       }
     }
     

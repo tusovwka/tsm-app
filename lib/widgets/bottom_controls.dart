@@ -27,90 +27,12 @@ class GameBottomControlBar extends StatelessWidget {
     onTapBack?.call();
   }
 
-  Future<void> _saveStats(
-    BuildContext context,
-    GameController controller,
-    PlayerRepo playersContainer,
-    GameStateFinish nextState,
-  ) async {
-    final bestTurn = controller.gameLog.whereType<StateChangeGameLogItem>().getBestTurn();
-    final guessedMafiaCount = bestTurn?.playerNumbers
-        .where((e) => controller.players.getByNumber(e).role.team == RoleTeam.mafia)
-        .length;
-    final otherTeamWin =
-        controller.gameLog.whereType<PlayerKickedGameLogItem>().where((e) => e.isOtherTeamWin);
-    final dbPlayers = await playersContainer
-        .getManyByNicknames(controller.players.map((e) => e.nickname).toList());
-    final foundMafia = <int>{};
-    var foundSheriff = false;
-    for (final item in controller.gameLog.whereType<PlayerCheckedGameLogItem>()) {
-      if (item.checkedByRole == PlayerRole.sheriff &&
-          controller.players.getByNumber(item.playerNumber).role.team == RoleTeam.mafia) {
-        foundMafia.add(item.playerNumber);
-      }
-      if (item.checkedByRole == PlayerRole.don &&
-          controller.players.getByNumber(item.playerNumber).role == PlayerRole.sheriff) {
-        foundSheriff = true;
-      }
-    }
-
-    final newPlayers = <String, PlayerWithStats>{};
-    for (final (dbPlayer, player) in dbPlayers.zip(controller.players)) {
-      if (dbPlayer == null) {
-        continue;
-      }
-      final (key, pws) = dbPlayer;
-      final newStats = pws.stats.copyWithUpdated(
-        playedAs: player.role,
-        won: nextState.winner == player.role.team,
-        warnCount: player.state.warns,
-        wasKicked: player.state.isKicked,
-        hasOtherTeamWon: otherTeamWin.isNotEmpty && otherTeamWin.last.playerNumber == player.number,
-        guessedMafiaCount:
-            bestTurn?.currentPlayerNumber == player.number ? (guessedMafiaCount ?? 0) : 0,
-        foundMafiaCount: player.role == PlayerRole.sheriff ? foundMafia.length : 0,
-        foundSheriff: player.role == PlayerRole.don && foundSheriff,
-        wasKilledFirstNight: bestTurn?.currentPlayerNumber == player.number,
-      );
-      // Обновляем также данные игрока, включая memberId
-      // Важно: используем memberId из текущего игрока, если он есть (из нового выбора)
-      final updatedMemberId = player.memberId ?? pws.player.memberId;
-      final updatedPlayer = pws.player.copyWith(
-        nickname: player.nickname ?? pws.player.nickname,
-        realName: pws.player.realName,
-        memberId: updatedMemberId,
-      );
-      newPlayers[key] = PlayerWithStats(updatedPlayer, newStats);
-    }
-    await playersContainer.putAllWithStats(newPlayers);
-    if (!context.mounted) {
-      return;
-    }
-    showSnackBar(context, const SnackBar(content: Text("Результаты игры сохранены")));
-  }
-
   Future<void> _onTapNext(BuildContext context, GameController controller) async {
     final nextStateAssumption = controller.nextStateAssumption;
     if (nextStateAssumption == null) {
       return;
     }
     controller.setNextState();
-    if (nextStateAssumption is GameStateFinish) {
-      final playersContainer = context.read<PlayerRepo>();
-      final saveStats = await showDialog<bool>(
-        context: context,
-        builder: (context) => const ConfirmationDialog(
-          title: Text("Сохранить результаты игры?"),
-          content: Text(
-            "Результат этой игры будет учтён у каждого зарегистрированного игрока в статистике.",
-          ),
-        ),
-      );
-      if (!(saveStats ?? false) || !context.mounted) {
-        return;
-      }
-      await _saveStats(context, controller, playersContainer, nextStateAssumption);
-    }
     onTapNext?.call();
   }
 
