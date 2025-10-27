@@ -72,6 +72,9 @@ class GameLogWithPlayers {
     this.gameType,
     this.gameImportance,
     this.judgeRatings,
+    this.winningTeam,
+    this.gameStartTime,
+    this.gameFinishTime,
   });
 
   static List<Player> _extractLegacyPlayers(dynamic json, GameLogVersion version) =>
@@ -82,18 +85,20 @@ class GameLogWithPlayers {
 
   factory GameLogWithPlayers.fromJson(dynamic json, {required GameLogVersion version}) {
     if (json is Map<String, dynamic>) {
+      // Новый формат с объектом game
+      final gameData = json["game"] as Map<String, dynamic>?;
+      
       return GameLogWithPlayers(
         log: (json["log"] as List<dynamic>)
             .parseJsonList((e) => gameLogFromJson(e, version: version)),
         players: (json["players"] as List<dynamic>)
             .parseJsonList((e) => playerFromJson(e, version: version)),
-        gameType: json["gameType"] != null ? GameType.byName(json["gameType"] as String) : null,
-        gameImportance: json["gameImportance"] as double?,
-        judgeRatings: json["judgeRatings"] != null 
-            ? (json["judgeRatings"] as Map<String, dynamic>).map(
-                (key, value) => MapEntry(int.parse(key), (value as num).toDouble()),
-              )
-            : null,
+        gameType: gameData?["type"] != null ? GameType.byName(gameData!["type"] as String) : null,
+        gameImportance: gameData?["importance"] as double?,
+        winningTeam: gameData?["winners"] != null ? RoleTeam.byName(gameData!["winners"] as String) : null,
+        gameStartTime: gameData?["start"] != null ? DateTime.parse(gameData!["start"] as String) : null,
+        gameFinishTime: gameData?["finish"] != null ? DateTime.parse(gameData!["finish"] as String) : null,
+        judgeRatings: _extractJudgeRatings(json["players"]),
       );
     }
     if (json is List<dynamic> && version < GameLogVersion.v2) {
@@ -109,19 +114,54 @@ class GameLogWithPlayers {
     );
   }
 
+  static Map<int, double>? _extractJudgeRatings(dynamic playersJson) {
+    if (playersJson == null) return null;
+    
+    final ratings = <int, double>{};
+    for (final playerJson in playersJson as List<dynamic>) {
+      final playerMap = playerJson as Map<String, dynamic>;
+      if (playerMap.containsKey("judgeRating")) {
+        final number = playerMap["number"] as int;
+        final rating = (playerMap["judgeRating"] as num).toDouble();
+        ratings[number] = rating;
+      }
+    }
+    
+    return ratings.isEmpty ? null : ratings;
+  }
+
   final Iterable<BaseGameLogItem> log;
   final Iterable<Player> players;
   final GameType? gameType;
   final double? gameImportance;
-  final Map<int, double>? judgeRatings; // Номер игрока (1-10) -> оценка
+  final Map<int, double>? judgeRatings;
+  final RoleTeam? winningTeam;
+  final DateTime? gameStartTime;
+  final DateTime? gameFinishTime;
 
-  Map<String, dynamic> toJson() => {
-        "log": log.map((e) => e.toJson()).toList(),
-        "players": players.map((e) => e.toJson()).toList(),
-        if (gameType != null) "gameType": gameType!.name,
-        if (gameImportance != null) "gameImportance": gameImportance,
-        if (judgeRatings != null) "judgeRatings": judgeRatings!.map((key, value) => MapEntry(key.toString(), value)),
+  Map<String, dynamic> toJson() {
+    final result = <String, dynamic>{
+      "log": log.map((e) => e.toJson()).toList(),
+      "players": players.map((player) {
+        final rating = judgeRatings?[player.number];
+        return player.toJson(judgeRating: rating);
+      }).toList(),
+    };
+    
+    // Добавляем объект game если есть хотя бы одно поле
+    if (gameType != null || gameImportance != null || winningTeam != null || 
+        gameStartTime != null || gameFinishTime != null) {
+      result["game"] = {
+        if (gameType != null) "type": gameType!.name,
+        if (gameImportance != null) "importance": gameImportance,
+        if (winningTeam != null) "winners": winningTeam!.name,
+        if (gameStartTime != null) "start": gameStartTime!.toIso8601String(),
+        if (gameFinishTime != null) "finish": gameFinishTime!.toIso8601String(),
       };
+    }
+    
+    return result;
+  }
 }
 
 class VersionedGameLog extends Versioned<GameLogVersion, GameLogWithPlayers> {

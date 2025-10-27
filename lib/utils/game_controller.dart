@@ -78,6 +78,14 @@ class GameController with ChangeNotifier {
     _judgeRatings = value;
   }
 
+  DateTime? _gameStartTime;
+  
+  DateTime? get gameStartTime => _gameStartTime;
+  
+  DateTime? _gameFinishTime;
+  
+  DateTime? get gameFinishTime => _gameFinishTime;
+
   GameController();
 
   bool get isGameInitialized => _game != null;
@@ -95,6 +103,14 @@ class GameController with ChangeNotifier {
   int get totalVotes => _game?.totalVotes ?? 0;
 
   RoleTeam? get winTeamAssumption => _game?.winTeamAssumption;
+  
+  RoleTeam? get winningTeam {
+    final currentState = _game?.state;
+    if (currentState is GameStateFinish) {
+      return currentState.winner;
+    }
+    return null;
+  }
 
   PlayersView get players => _game.ensureInitialized.players;
 
@@ -118,6 +134,8 @@ class GameController with ChangeNotifier {
     _gameType = null;
     _gameImportance = null;
     _judgeRatings = null;
+    _gameStartTime = null;
+    _gameFinishTime = null;
     _log.debug("Game stopped");
     notifyListeners();
   }
@@ -133,7 +151,20 @@ class GameController with ChangeNotifier {
   }
 
   void setNextState() {
+    final oldState = _game.ensureInitialized.state;
     _game.ensureInitialized.setNextState();
+    final newState = _game.ensureInitialized.state;
+    
+    // Отслеживаем начало игры (переход к первой ночи)
+    if (oldState is GameStatePrepare && newState.stage == GameStage.firstNight) {
+      _gameStartTime = DateTime.now();
+    }
+    
+    // Отслеживаем конец игры
+    if (newState is GameStateFinish) {
+      _gameFinishTime = DateTime.now();
+    }
+    
     notifyListeners();
   }
 

@@ -114,11 +114,12 @@ extension BaseGameLogItemJson on BaseGameLogItem {
 }
 
 extension PlayerJson on Player {
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({double? judgeRating}) => {
         "number": number,
         "role": role.name,
         "nickname": nickname,
         "memberId": memberId,
+        if (judgeRating != null) "judgeRating": judgeRating,
       };
 }
 

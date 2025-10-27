@@ -29,9 +29,9 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
         _ratings[i] = widget.initialRatings![i]!;
       } else {
         // Получаем информацию об игроке
+        final hadPPK = _checkIfPlayerHadPPK(i);
         final player = controller.players.getByNumber(i);
         final wasKicked = player.state.isKicked;
-        final hadPPK = _checkIfPlayerHadPPK(i);
         
         if (hadPPK) {
           _ratings[i] = -2.5;
@@ -58,15 +58,25 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
   }
 
   double _getMinRating(int playerNumber) {
+    final hadPPK = _checkIfPlayerHadPPK(playerNumber);
     final controller = context.read<GameController>();
     final player = controller.players.getByNumber(playerNumber);
-    return player.state.isKicked ? -2.0 : 0.0;
+    
+    if (hadPPK || player.state.isKicked) {
+      return -2.0;
+    }
+    return 0.0;
   }
 
   double _getMaxRating(int playerNumber) {
+    final hadPPK = _checkIfPlayerHadPPK(playerNumber);
     final controller = context.read<GameController>();
     final player = controller.players.getByNumber(playerNumber);
-    return player.state.isKicked ? 4.0 : 5.0;
+    
+    if (hadPPK || player.state.isKicked) {
+      return 4.0;
+    }
+    return 5.0;
   }
 
   void _changeRating(int playerNumber, double delta) {
