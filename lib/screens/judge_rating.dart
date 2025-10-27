@@ -136,7 +136,7 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
   Widget _buildDesktopRatingCard(
     BuildContext context,
     int playerNumber,
-    Player player,
+    PlayerWithState player,
     bool hadPPK,
     double rating,
     double min,
@@ -214,7 +214,7 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
   Widget _buildMobileRatingCard(
     BuildContext context,
     int playerNumber,
-    Player player,
+    PlayerWithState player,
     bool hadPPK,
     double rating,
     double min,
