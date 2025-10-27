@@ -162,6 +162,7 @@ class GameLogScreen extends StatelessWidget {
         players: controller.originalPlayers,
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
+        judgeRatings: controller.judgeRatings,
       ),
     );
     final fileName = "mafia_game_log_${_fileNameDateFormat.format(DateTime.now())}";

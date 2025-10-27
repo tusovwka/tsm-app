@@ -6,6 +6,7 @@ import "../screens/choose_roles_screen.dart";
 import "deck_mode_provider.dart";
 import "../screens/debug_menu_screen.dart";
 import "../screens/game_log.dart";
+import "../screens/judge_rating.dart";
 import "../screens/player_info.dart";
 import "../screens/player_stats.dart";
 import "../screens/players.dart";
@@ -42,6 +43,12 @@ Future<void> openRolesPage(BuildContext context) => openPage(context, const Role
 
 Future<void> openSeatRandomizerPage(BuildContext context) =>
     openPage(context, const SeatRandomizerScreen());
+
+Future<Map<int, double>?> openJudgeRatingPage(BuildContext context, {Map<int, double>? initialRatings}) async {
+  return await Navigator.of(context).push<Map<int, double>>(
+    MaterialPageRoute(builder: (context) => JudgeRatingScreen(initialRatings: initialRatings)),
+  );
+}
 
 enum SettingsSubpage {
   appearance,

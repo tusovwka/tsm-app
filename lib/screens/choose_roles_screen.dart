@@ -50,7 +50,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   
   // Тип и важность игры
   var _gameType = GameType.training;
-  var _gameImportance = 0.0;
+  var _gameImportance = 1.0;
 
   @override
   void initState() {

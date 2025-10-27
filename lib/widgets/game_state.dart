@@ -79,6 +79,7 @@ class BottomGameStateWidget extends StatelessWidget {
         players: controller.originalPlayers,
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
+        judgeRatings: controller.judgeRatings,
       ),
     );
     
@@ -112,6 +113,7 @@ class BottomGameStateWidget extends StatelessWidget {
         players: controller.originalPlayers,
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
+        judgeRatings: controller.judgeRatings,
       ),
     );
     final fileName = "mafia_game_log_${_fileNameDateFormat.format(DateTime.now())}";
@@ -120,6 +122,13 @@ class BottomGameStateWidget extends StatelessWidget {
       return;
     }
     showSnackBar(context, const SnackBar(content: Text("Игра скачана")));
+  }
+
+  Future<void> _onJudgeRatingPressed(BuildContext context, GameController controller) async {
+    final ratings = await openJudgeRatingPage(context, initialRatings: controller.judgeRatings);
+    if (ratings != null) {
+      controller.judgeRatings = ratings;
+    }
   }
 
   @override
@@ -143,10 +152,6 @@ class BottomGameStateWidget extends StatelessWidget {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextButton(
-            onPressed: () => openRolesPage(context),
-            child: const Text("Раздача ролей", style: TextStyle(fontSize: 20)),
-          ),
           TextButton(
             onPressed: () => openRoleChooserPage(context),
             child: const Text("Редактирование игроков", style: TextStyle(fontSize: 20)),
@@ -207,15 +212,21 @@ class BottomGameStateWidget extends StatelessWidget {
         children: [
           Text(resultText, style: const TextStyle(fontSize: 20)),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
+              TextButton.icon(
+                onPressed: () => _onJudgeRatingPressed(context, controller),
+                icon: const Icon(Icons.star),
+                label: const Text("Оценка судей"),
+              ),
               TextButton.icon(
                 onPressed: () => _onPublishGamePressed(context, controller),
                 icon: const Icon(Icons.cloud_upload),
                 label: const Text("Опубликовать"),
               ),
-              const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: () => _onDownloadGamePressed(context, controller),
                 icon: const Icon(Icons.download),

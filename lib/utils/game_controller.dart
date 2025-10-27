@@ -70,6 +70,14 @@ class GameController with ChangeNotifier {
     _gameImportance = value;
   }
 
+  Map<int, double>? _judgeRatings;
+
+  Map<int, double>? get judgeRatings => _judgeRatings;
+
+  set judgeRatings(Map<int, double>? value) {
+    _judgeRatings = value;
+  }
+
   GameController();
 
   bool get isGameInitialized => _game != null;
@@ -109,6 +117,7 @@ class GameController with ChangeNotifier {
     _memberIds = null;
     _gameType = null;
     _gameImportance = null;
+    _judgeRatings = null;
     _log.debug("Game stopped");
     notifyListeners();
   }

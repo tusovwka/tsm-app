@@ -71,6 +71,7 @@ class GameLogWithPlayers {
     required this.players,
     this.gameType,
     this.gameImportance,
+    this.judgeRatings,
   });
 
   static List<Player> _extractLegacyPlayers(dynamic json, GameLogVersion version) =>
@@ -88,6 +89,11 @@ class GameLogWithPlayers {
             .parseJsonList((e) => playerFromJson(e, version: version)),
         gameType: json["gameType"] != null ? GameType.byName(json["gameType"] as String) : null,
         gameImportance: json["gameImportance"] as double?,
+        judgeRatings: json["judgeRatings"] != null 
+            ? (json["judgeRatings"] as Map<String, dynamic>).map(
+                (key, value) => MapEntry(int.parse(key), (value as num).toDouble()),
+              )
+            : null,
       );
     }
     if (json is List<dynamic> && version < GameLogVersion.v2) {
@@ -107,12 +113,14 @@ class GameLogWithPlayers {
   final Iterable<Player> players;
   final GameType? gameType;
   final double? gameImportance;
+  final Map<int, double>? judgeRatings; // Номер игрока (1-10) -> оценка
 
   Map<String, dynamic> toJson() => {
         "log": log.map((e) => e.toJson()).toList(),
         "players": players.map((e) => e.toJson()).toList(),
         if (gameType != null) "gameType": gameType!.name,
         if (gameImportance != null) "gameImportance": gameImportance,
+        if (judgeRatings != null) "judgeRatings": judgeRatings!.map((key, value) => MapEntry(key.toString(), value)),
       };
 }
 
