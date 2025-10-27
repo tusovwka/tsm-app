@@ -84,6 +84,28 @@ class PlayerYellowCardsChangedGameLogItem extends BaseGameLogItem {
   });
 }
 
+@immutable
+class PlayerVotedGameLogItem extends BaseGameLogItem {
+  @override
+  final int day;
+  /// Номер игрока который голосует
+  final int voterNumber;
+  /// Номер игрока за которого голосуют (кандидат на выбывание)
+  final int candidateNumber;
+  /// true = голос добавлен, false = голос убран
+  final bool isVoteAdded;
+  /// Этап голосования (voting или finalVoting)
+  final GameStage stage;
+
+  const PlayerVotedGameLogItem({
+    required this.day,
+    required this.voterNumber,
+    required this.candidateNumber,
+    required this.isVoteAdded,
+    required this.stage,
+  });
+}
+
 class GameLog with IterableMixin<BaseGameLogItem> {
   final _log = <BaseGameLogItem>[];
 

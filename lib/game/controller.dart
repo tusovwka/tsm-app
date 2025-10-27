@@ -772,18 +772,25 @@ class Game {
   }
 
   void addYellowCard(int number) {
-    if (!isActive) {
-      throw StateError("Can't add yellow card in state ${state.stage}");
-    }
+    // Разрешаем добавлять ЖК даже после окончания игры (постфактум)
+    final isPostGame = !isActive;
+    
     final newPlayers = List.of(state.playerStates);
     final i = number - 1;
     final oldYellowCards = newPlayers[i].yellowCards;
     final newYellowCards = (oldYellowCards + 1).clamp(0, 2);
-    newPlayers[i] = newPlayers[i].copyWith(
-      yellowCards: newYellowCards,
-      isAlive: newYellowCards < 2,
-      isKicked: newYellowCards >= 2,
-    );
+    
+    // Если игра активна - меняем состояние игрока, если постфактум - только счетчик ЖК
+    if (isPostGame) {
+      newPlayers[i] = newPlayers[i].copyWith(yellowCards: newYellowCards);
+    } else {
+      newPlayers[i] = newPlayers[i].copyWith(
+        yellowCards: newYellowCards,
+        isAlive: newYellowCards < 2,
+        isKicked: newYellowCards >= 2,
+      );
+    }
+    
     _log.add(
       PlayerYellowCardsChangedGameLogItem(
         day: state.day,
@@ -792,16 +799,17 @@ class Game {
         currentYellowCards: newYellowCards,
       ),
     );
-    if (newYellowCards >= 2) {
+    
+    // Только если игра активна - добавляем запись об удалении
+    if (!isPostGame && newYellowCards >= 2) {
       _log.add(PlayerKickedGameLogItem(day: state.day, playerNumber: number));
     }
+    
     _editPlayers(newPlayers);
   }
 
   void removeYellowCard(int number) {
-    if (!isActive) {
-      throw StateError("Can't remove yellow card in state ${state.stage}");
-    }
+    // Разрешаем удалять ЖК даже после окончания игры (постфактум)
     final newPlayers = List.of(state.playerStates);
     final i = number - 1;
     final oldYellowCards = newPlayers[i].yellowCards;
