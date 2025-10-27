@@ -274,7 +274,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       PlayerRole.sheriff => "Ш",
       PlayerRole.don => "Д", 
       PlayerRole.mafia => "М",
-      PlayerRole.citizen => "",
+      PlayerRole.citizen => "😊",
     };
   }
 
@@ -418,37 +418,15 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                     ],
                     onSelected: (value) => _onNicknameSelected(i, value),
                   ),
-                              if (_assignedRoles[i] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 12, top: 4),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        _getRoleDisplay(_assignedRoles[i]),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context).colorScheme.secondary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _getRoleDisplayForField(_assignedRoles[i]),
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.secondary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                             ],
                           ),
                         ),
                         if (_assignedRoles[i] != null)
-                          IconButton(
-                            icon: Icon(Icons.close),
-                            tooltip: "Убрать роль",
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                              padding: const EdgeInsets.all(12),
+                            ),
                             onPressed: () {
                               setState(() {
                                 _deckRoles.add(_assignedRoles[i]!);
@@ -457,6 +435,13 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                                 _isModified = true;
                               });
                             },
+                            child: Text(
+                              _getRoleDisplay(_assignedRoles[i]),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
                           ),
                       ],
                     ),
