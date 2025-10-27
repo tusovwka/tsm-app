@@ -686,8 +686,8 @@ class Game {
     final newYellowCards = (oldYellowCards + 1).clamp(0, 2);
     newPlayers[i] = newPlayers[i].copyWith(
       yellowCards: newYellowCards,
+      isAlive: newYellowCards < 2,
       isKicked: newYellowCards >= 2,
-      // Игрок остается живым (isAlive), но удаляется (isKicked)
     );
     _log.add(
       PlayerYellowCardsChangedGameLogItem(
