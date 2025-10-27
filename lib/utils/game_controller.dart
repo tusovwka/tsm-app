@@ -197,7 +197,7 @@ class GameController with ChangeNotifier {
     _game.ensureInitialized.addYellowCard(player);
     
     // Для тренировочных игр добавляем фолы при получении желтой карточки
-    if (_gameType == GameType.training) {
+    if (_gameType == GameType.training && isGameActive) {
       final currentWarns = _game.ensureInitialized.getPlayerWarnCount(player);
       if (currentWarns == 2) {
         _game.ensureInitialized.warnPlayer(player); // Добавляем 1 фол
