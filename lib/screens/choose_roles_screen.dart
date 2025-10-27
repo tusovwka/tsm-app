@@ -672,12 +672,6 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         ..startNewGame(rules: context.read());
       
       // Начисляем фолы для тренировочных игр
-      if (_gameType == GameType.training) {
-        for (var i = 1; i <= 10; i++) {
-          controller.warnPlayer(i); // Добавляем 2 фола
-          controller.warnPlayer(i);
-        }
-      }
       
       if (!context.mounted) {
         throw ContextNotMountedError();
@@ -710,12 +704,6 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       ..startNewGame(rules: context.read());
     
     // Начисляем фолы для тренировочных игр
-    if (_gameType == GameType.training) {
-      for (var i = 1; i <= 10; i++) {
-        controller.warnPlayer(i); // Добавляем 2 фола
-        controller.warnPlayer(i);
-      }
-    }
     
     if (!context.mounted) {
       throw ContextNotMountedError();
@@ -779,7 +767,7 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       const DropdownMenuEntry(
         value: null,
         label: "",
-        labelWidget: Text("(*без никнейма*)", style: TextStyle(fontStyle: FontStyle.italic)),
+        labelWidget: Text("(Гость)", style: TextStyle(fontStyle: FontStyle.italic)),
       ),
       for (final nickname in players.data
           .map((p) => p.$2.nickname)
