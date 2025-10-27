@@ -199,11 +199,32 @@ class Game {
                   ?.newState as GameStateWithIterablePlayers?)
               ?.playerNumbers
               .toSet();
-          final skipVoting = state.day == 1 && accusations.length < 2 ||
-              accusations.isEmpty ||
-              kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer ||
-              lastDayVotedOutPlayers != null &&
-                  lastDayKickedPlayers.difference(lastDayVotedOutPlayers).isNotEmpty;
+          
+          // Новая логика пропуска голосования
+          bool skipVoting = false;
+          
+          // Стандартные причины пропуска
+          if (state.day == 1 && accusations.length < 2) {
+            skipVoting = true; // День 1: нужно минимум 2 обвинения
+          } else if (accusations.isEmpty) {
+            skipVoting = true; // Нет обвинений
+          } else if (kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer) {
+            skipVoting = true; // 1 удаленный (не убитый мафией)
+          } else if (lastDayVotedOutPlayers != null &&
+              lastDayKickedPlayers.difference(lastDayVotedOutPlayers).isNotEmpty) {
+            skipVoting = true; // Удаления после голосования в прошлый день
+          }
+          
+          // Новое правило: множественные удаления
+          if (kickedPlayers.length >= 2) {
+            skipVoting = true; // 2+ удалений - всегда пропускаем
+          }
+          
+          // Новое правило: в прошлый день было пропущено голосование из-за множественных удалений
+          if (state.day >= 2 && _wasVotingSkippedDueToMultipleKicks(state.day - 1)) {
+            skipVoting = true; // Пропускаем следующее голосование после множественных удалений
+          }
+          
           if (skipVoting) {
             return GameStateNightKill(
               day: state.day + 1,
@@ -233,9 +254,20 @@ class Game {
           playerNumbers: final pns,
         ):
         final kickedPlayers = _getKickedPlayers();
-        final skipVoting =
-            kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer ||
-                kickedPlayers.length > 1;
+        
+        // Проверяем нужно ли пропустить голосование
+        bool skipVoting = false;
+        if (kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer) {
+          skipVoting = true; // 1 удаленный (не убитый мафией)
+        } else if (kickedPlayers.length >= 2) {
+          skipVoting = true; // 2+ удалений
+        }
+        
+        // Новое правило: в прошлый день было пропущено голосование из-за множественных удалений
+        if (state.day >= 2 && _wasVotingSkippedDueToMultipleKicks(state.day - 1)) {
+          skipVoting = true;
+        }
+        
         if (skipVoting) {
           return GameStateNightKill(
             day: state.day + 1,
@@ -291,9 +323,20 @@ class Game {
         final maxVotesPlayers = _maxVotesPlayers;
         // TODO: refactor (maybe?)
         final kickedPlayers = _getKickedPlayers();
-        final skipVoting =
-            kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer ||
-                kickedPlayers.length > 1;
+        
+        // Проверяем нужно ли пропустить голосование
+        bool skipVoting = false;
+        if (kickedPlayers.length == 1 && kickedPlayers.single != _thisNightKilledPlayer) {
+          skipVoting = true; // 1 удаленный (не убитый мафией)
+        } else if (kickedPlayers.length >= 2) {
+          skipVoting = true; // 2+ удалений
+        }
+        
+        // Новое правило: в прошлый день было пропущено голосование из-за множественных удалений
+        if (state.day >= 2 && _wasVotingSkippedDueToMultipleKicks(state.day - 1)) {
+          skipVoting = true;
+        }
+        
         if (skipVoting) {
           return GameStateNightKill(
             day: state.day + 1,
@@ -912,6 +955,42 @@ class Game {
       .where((e) => e.day == state.day - daysBack)
       .map((e) => e.playerNumber)
       .toSet();
+
+  /// Проверяет, было ли пропущено голосование в предыдущий день из-за множественных удалений
+  bool _wasVotingSkippedDueToMultipleKicks(int day) {
+    // Проверяем, было ли голосование в указанный день
+    final hadVoting = _log
+        .whereType<StateChangeGameLogItem>()
+        .any((e) => e.newState.day == day && 
+                    (e.newState.stage == GameStage.preVoting || 
+                     e.newState.stage == GameStage.voting ||
+                     e.newState.stage == GameStage.dayLastWords));
+    
+    if (hadVoting) {
+      return false; // Голосование было, значит не пропускалось
+    }
+    
+    // Проверяем, были ли речи в этот день
+    final hadSpeaking = _log
+        .whereType<StateChangeGameLogItem>()
+        .any((e) => e.newState.day == day && e.newState.stage == GameStage.speaking);
+    
+    if (!hadSpeaking) {
+      return false; // Не было речей, значит это не связано с пропуском голосования
+    }
+    
+    // Проверяем количество удалений в этот день
+    final kicksInDay = _log
+        .whereType<PlayerKickedGameLogItem>()
+        .where((e) => e.day == day)
+        .length;
+    
+    // Голосование было пропущено из-за множественных удалений если:
+    // 1. Были речи
+    // 2. Не было голосования
+    // 3. Было 2+ удаления
+    return kicksInDay >= 2;
+  }
 
   int? get _thisNightKilledPlayer {
     // Ищем последний GameStateNightKill для текущего дня
