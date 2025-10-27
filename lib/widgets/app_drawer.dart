@@ -36,7 +36,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text("Правила ТСМ"),
             onTap: () {
               Navigator.pop(context);
-              launchUrlOrCopy(context, "https://mafia.tusovwka.ru/docs/rules");
+              launchUrlOrCopy(context, "https://mafia.tusovwka.ru/docs/rules.pdf");
             },
           ),
           ListTile(
