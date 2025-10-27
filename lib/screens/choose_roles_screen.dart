@@ -11,6 +11,7 @@ import "../utils/extensions.dart";
 import "../utils/game_controller.dart";
 import "../utils/navigation.dart";
 import "../utils/ui.dart";
+import "../utils/versioned/game_log.dart";
 import "../widgets/confirm_pop_scope.dart";
 import "../widgets/confirmation_dialog.dart";
 
@@ -46,6 +47,10 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
   final _deckRoles = <PlayerRole>[];
   final _assignedRoles = List<PlayerRole?>.generate(rolesList.length, (index) => null);
   var _currentPlayerIndex = 0;
+  
+  // Тип и важность игры
+  var _gameType = GameType.training;
+  var _gameImportance = 0.0;
 
   @override
   void initState() {
@@ -425,24 +430,13 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
                           ),
                         ),
                         if (_assignedRoles[i] != null)
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(48, 48),
-                              padding: const EdgeInsets.all(12),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _deckRoles.add(_assignedRoles[i]!);
-                                _deckRoles.shuffle(Random());
-                                _assignedRoles[i] = null;
-                                _isModified = true;
-                              });
-                            },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
                               _getRoleDisplay(_assignedRoles[i]),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                                fontSize: 24,
                               ),
                             ),
                           ),
@@ -682,11 +676,28 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
       if (showRoles == null) {
         return;
       }
-      context.read<GameController>()
+      final controller = context.read<GameController>();
+      controller
         ..roles = newRoles
         ..nicknames = _chosenNicknames
         ..memberIds = _chosenMemberIds
+        ..gameType = _gameType
+        ..gameImportance = _gameImportance
         ..startNewGame(rules: context.read());
+      
+      // Начисляем фолы для тренировочных игр
+      if (_gameType == GameType.training) {
+        for (var i = 1; i <= 10; i++) {
+          final currentWarns = controller.getPlayerWarnCount(i);
+          if (currentWarns == 2) {
+            controller.warnPlayer(i); // Добавляем 1 фол
+          } else {
+            controller.warnPlayer(i); // Добавляем 2 фола
+            controller.warnPlayer(i);
+          }
+        }
+      }
+      
       if (showRoles) {
         await openRolesPage(context);
         if (!context.mounted) {
@@ -725,11 +736,28 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
     if (showRoles == null) {
       return;
     }
-    context.read<GameController>()
+    final controller = context.read<GameController>();
+    controller
       ..roles = newRoles
       ..nicknames = _chosenNicknames
       ..memberIds = _chosenMemberIds
+      ..gameType = _gameType
+      ..gameImportance = _gameImportance
       ..startNewGame(rules: context.read());
+    
+    // Начисляем фолы для тренировочных игр
+    if (_gameType == GameType.training) {
+      for (var i = 1; i <= 10; i++) {
+        final currentWarns = controller.getPlayerWarnCount(i);
+        if (currentWarns == 2) {
+          controller.warnPlayer(i); // Добавляем 1 фол
+        } else {
+          controller.warnPlayer(i); // Добавляем 2 фола
+          controller.warnPlayer(i);
+        }
+      }
+    }
+    
     if (showRoles) {
       await openRolesPage(context);
       if (!context.mounted) {
@@ -760,6 +788,33 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
         _ValidationErrorType.missing => "Роль не выбрана",
         null => null,
       };
+
+  void _changeGameImportance(double delta) {
+    setState(() {
+      var newImportance = _gameImportance + delta;
+      // Ограничения в зависимости от типа игры
+      if (_gameType == GameType.tournament) {
+        newImportance = newImportance.clamp(1.0, 3.0);
+      } else {
+        newImportance = newImportance.clamp(0.0, 2.0);
+      }
+      _gameImportance = newImportance;
+      _isModified = true;
+    });
+  }
+
+  void _changeGameType(GameType newType) {
+    setState(() {
+      _gameType = newType;
+      // Корректируем важность при смене типа
+      if (newType == GameType.tournament && _gameImportance < 1.0) {
+        _gameImportance = 1.0;
+      } else if (newType == GameType.training && _gameImportance > 2.0) {
+        _gameImportance = 2.0;
+      }
+      _isModified = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -801,7 +856,99 @@ class _ChooseRolesScreenState extends State<ChooseRolesScreen> {
             ),
           ],
         ),
-        body: _isDeckMode ? _buildDeckMode(players) : _buildNormalMode(nicknameEntries),
+        body: Column(
+          children: [
+            // Панель с настройками игры
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Тип игры
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Тип игры",
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        SegmentedButton<GameType>(
+                          segments: const [
+                            ButtonSegment(
+                              value: GameType.training,
+                              label: Text("Тренировочная"),
+                            ),
+                            ButtonSegment(
+                              value: GameType.tournament,
+                              label: Text("Турнирная"),
+                            ),
+                          ],
+                          selected: {_gameType},
+                          onSelectionChanged: (Set<GameType> newSelection) {
+                            _changeGameType(newSelection.first);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Важность игры
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Важность игры",
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.remove),
+                            onPressed: () => _changeGameImportance(-0.25),
+                            tooltip: "Уменьшить важность",
+                          ),
+                          SizedBox(
+                            width: 50,
+                            child: Text(
+                              _gameImportance.toStringAsFixed(2),
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () => _changeGameImportance(0.25),
+                            tooltip: "Увеличить важность",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Основной контент
+            Expanded(
+              child: _isDeckMode ? _buildDeckMode(players) : _buildNormalMode(nicknameEntries),
+            ),
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
           tooltip: "Применить",
           onPressed: () => _onFabPressed(context),

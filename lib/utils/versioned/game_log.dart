@@ -8,6 +8,14 @@ import "../json/from_json.dart";
 import "../json/to_json.dart";
 import "base.dart";
 
+enum GameType {
+  training,
+  tournament,
+  ;
+
+  factory GameType.byName(String name) => GameType.values.byName(name);
+}
+
 enum _LegacyGameLogVersion {
   v0(0, "0.3.0-rc.2"),
   ;
@@ -61,6 +69,8 @@ class GameLogWithPlayers {
   const GameLogWithPlayers({
     required this.log,
     required this.players,
+    this.gameType,
+    this.gameImportance,
   });
 
   static List<Player> _extractLegacyPlayers(dynamic json, GameLogVersion version) =>
@@ -76,6 +86,8 @@ class GameLogWithPlayers {
             .parseJsonList((e) => gameLogFromJson(e, version: version)),
         players: (json["players"] as List<dynamic>)
             .parseJsonList((e) => playerFromJson(e, version: version)),
+        gameType: json["gameType"] != null ? GameType.byName(json["gameType"] as String) : null,
+        gameImportance: json["gameImportance"] as double?,
       );
     }
     if (json is List<dynamic> && version < GameLogVersion.v2) {
@@ -93,10 +105,14 @@ class GameLogWithPlayers {
 
   final Iterable<BaseGameLogItem> log;
   final Iterable<Player> players;
+  final GameType? gameType;
+  final double? gameImportance;
 
   Map<String, dynamic> toJson() => {
         "log": log.map((e) => e.toJson()).toList(),
         "players": players.map((e) => e.toJson()).toList(),
+        if (gameType != null) "gameType": gameType!.name,
+        if (gameImportance != null) "gameImportance": gameImportance,
       };
 }
 

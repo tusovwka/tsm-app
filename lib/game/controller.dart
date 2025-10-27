@@ -683,11 +683,11 @@ class Game {
     final newPlayers = List.of(state.playerStates);
     final i = number - 1;
     final oldYellowCards = newPlayers[i].yellowCards;
-    final newYellowCards = oldYellowCards + 1;
+    final newYellowCards = (oldYellowCards + 1).clamp(0, 2);
     newPlayers[i] = newPlayers[i].copyWith(
       yellowCards: newYellowCards,
-      isAlive: newPlayers[i].isAlive && newYellowCards < 2,
-      isKicked: newYellowCards >= 2,
+      isAlive: newPlayers[i].isAlive && newYellowCards <= 2,
+      isKicked: newYellowCards > 2,
     );
     _log.add(
       PlayerYellowCardsChangedGameLogItem(
@@ -697,7 +697,7 @@ class Game {
         currentYellowCards: newYellowCards,
       ),
     );
-    if (newYellowCards >= 2) {
+    if (newYellowCards > 2) {
       _log.add(PlayerKickedGameLogItem(day: state.day, playerNumber: number));
     }
     _editPlayers(newPlayers);
@@ -710,7 +710,7 @@ class Game {
     final newPlayers = List.of(state.playerStates);
     final i = number - 1;
     final oldYellowCards = newPlayers[i].yellowCards;
-    final newYellowCards = (oldYellowCards - 1).clamp(0, 1);
+    final newYellowCards = (oldYellowCards - 1).clamp(0, 2);
     newPlayers[i] = newPlayers[i].copyWith(yellowCards: newYellowCards);
     _log.add(
       PlayerYellowCardsChangedGameLogItem(

@@ -8,6 +8,7 @@ import "../game/players_view.dart";
 import "../game/states.dart";
 import "log.dart";
 import "rules.dart";
+import "versioned/game_log.dart";
 
 extension _EnsureInitialized on Game? {
   Game get ensureInitialized => this ?? (throw StateError("Game is not initialized"));
@@ -53,6 +54,22 @@ class GameController with ChangeNotifier {
     _roles = value;
   }
 
+  GameType? _gameType;
+
+  GameType? get gameType => _gameType;
+
+  set gameType(GameType? value) {
+    _gameType = value;
+  }
+
+  double? _gameImportance;
+
+  double? get gameImportance => _gameImportance;
+
+  set gameImportance(double? value) {
+    _gameImportance = value;
+  }
+
   GameController();
 
   bool get isGameInitialized => _game != null;
@@ -90,6 +107,8 @@ class GameController with ChangeNotifier {
     _roles = null;
     _nicknames = null;
     _memberIds = null;
+    _gameType = null;
+    _gameImportance = null;
     _log.debug("Game stopped");
     notifyListeners();
   }
