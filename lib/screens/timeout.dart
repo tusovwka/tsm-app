@@ -50,8 +50,24 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   }
   
   void _resumeTimerIfNeeded() {
-    if (!_wasPaused && _timerService.isPaused) {
-      _timerService.restart(paused: false);
+    if (!_wasPaused) {
+      // Пытаемся возобновить несколько раз с задержками
+      // чтобы гарантировать что таймер возобновится
+      Future.delayed(const Duration(milliseconds: 10), () {
+        if (_timerService.isPaused) {
+          _timerService.resume();
+        }
+      });
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_timerService.isPaused) {
+          _timerService.resume();
+        }
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_timerService.isPaused) {
+          _timerService.resume();
+        }
+      });
     }
   }
 
