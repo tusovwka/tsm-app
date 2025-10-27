@@ -110,6 +110,20 @@ extension BaseGameLogItemJson on BaseGameLogItem {
             "playerNumber": playerNumber,
             "isOtherTeamWin": isOtherTeamWin,
           },
+        PlayerVotedGameLogItem(
+          :final day,
+          :final voterNumber,
+          :final candidateNumber,
+          :final isVoteAdded,
+          :final stage,
+        ) =>
+          {
+            "day": day,
+            "voterNumber": voterNumber,
+            "candidateNumber": candidateNumber,
+            "isVoteAdded": isVoteAdded,
+            "stage": stage.name,
+          },
       };
 }
 

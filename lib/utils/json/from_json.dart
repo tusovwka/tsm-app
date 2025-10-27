@@ -62,6 +62,15 @@ BaseGameLogItem gameLogFromJson(Map<String, dynamic> json, {required GameLogVers
       currentYellowCards: json["currentYellowCards"] as int,
     );
   }
+  if (json.containsKey("voterNumber")) {
+    return PlayerVotedGameLogItem(
+      day: json["day"] as int,
+      voterNumber: json["voterNumber"] as int,
+      candidateNumber: json["candidateNumber"] as int,
+      isVoteAdded: json["isVoteAdded"] as bool,
+      stage: GameStage.byName(json["stage"] as String),
+    );
+  }
   throw ArgumentError.value(json, "json", "Unknown game log item");
 }
 
