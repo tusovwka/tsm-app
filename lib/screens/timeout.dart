@@ -17,17 +17,20 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
   Duration _elapsed = Duration.zero;
   DateTime? _startTime;
   bool _wasPaused = false;
+  late TimerService _timerService;
 
   @override
   void initState() {
     super.initState();
     _startTime = DateTime.now();
     
+    // Сохраняем ссылку на TimerService
+    _timerService = context.read<TimerService>();
+    
     // Приостанавливаем игровой таймер
-    final timerService = context.read<TimerService>();
-    _wasPaused = timerService.isPaused;
+    _wasPaused = _timerService.isPaused;
     if (!_wasPaused) {
-      timerService.pause();
+      _timerService.pause();
     }
     
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -44,9 +47,8 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
     _timer?.cancel();
     
     // Возобновляем игровой таймер если он не был на паузе
-    final timerService = context.read<TimerService>();
-    if (!_wasPaused && timerService.isPaused) {
-      timerService.resume();
+    if (!_wasPaused && _timerService.isPaused) {
+      _timerService.resume();
     }
     
     super.dispose();
@@ -62,12 +64,8 @@ class _TimeoutScreenState extends State<TimeoutScreen> {
     final controller = context.read<GameController>();
     controller.addTimeout(_startTime!, DateTime.now());
     
-    // Возобновляем игровой таймер если он не был на паузе
-    final timerService = context.read<TimerService>();
-    if (!_wasPaused && timerService.isPaused) {
-      timerService.resume();
-    }
-    
+    // Помечаем что таймер нужно возобновить
+    // Фактическое возобновление произойдет в dispose()
     Navigator.pop(context);
   }
 
