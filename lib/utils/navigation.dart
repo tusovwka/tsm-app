@@ -12,6 +12,7 @@ import "../screens/player_stats.dart";
 import "../screens/players.dart";
 import "../screens/roles.dart";
 import "../screens/seat_randomizer.dart";
+import "../screens/timeout.dart";
 import "../screens/settings/appearance.dart";
 import "../screens/settings/behavior.dart";
 import "../screens/settings/main.dart";
@@ -43,6 +44,8 @@ Future<void> openRolesPage(BuildContext context) => openPage(context, const Role
 
 Future<void> openSeatRandomizerPage(BuildContext context) =>
     openPage(context, const SeatRandomizerScreen());
+
+Future<void> openTimeoutPage(BuildContext context) => openPage(context, const TimeoutScreen());
 
 Future<Map<int, double>?> openJudgeRatingPage(BuildContext context, {Map<int, double>? initialRatings}) async {
   return await Navigator.of(context).push<Map<int, double>>(

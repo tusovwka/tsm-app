@@ -7,7 +7,6 @@ import "package:package_info_plus/package_info_plus.dart";
 import "package:provider/provider.dart";
 
 import "../utils/db/repo.dart";
-import "../utils/deck_mode_provider.dart";
 import "../utils/game_controller.dart";
 import "../utils/misc.dart";
 import "../utils/navigation.dart";
@@ -162,13 +161,10 @@ class _MainScreenState extends State<MainScreen> {
                   closeOnActivate: false,
                   child: const Text("Показывать роли"),
                 ),
-                Consumer<DeckModeProvider>(
-                  builder: (context, deckModeProvider, child) => CheckboxMenuButton(
-                    value: deckModeProvider.isDeckMode,
-                    onChanged: (value) => deckModeProvider.setDeckMode(value ?? true),
-                    closeOnActivate: false,
-                    child: const Text("Режим колоды ролей"),
-                  ),
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.timer, size: Checkbox.width),
+                  onPressed: controller.isGameActive ? () => openTimeoutPage(context) : null,
+                  child: const Text("Таймаут"),
                 ),
               ],
             ),

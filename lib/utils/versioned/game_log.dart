@@ -75,6 +75,7 @@ class GameLogWithPlayers {
     this.winningTeam,
     this.gameStartTime,
     this.gameFinishTime,
+    this.timeouts,
   });
 
   static List<Player> _extractLegacyPlayers(dynamic json, GameLogVersion version) =>
@@ -98,6 +99,14 @@ class GameLogWithPlayers {
         winningTeam: gameData?["winners"] != null ? RoleTeam.byName(gameData!["winners"] as String) : null,
         gameStartTime: gameData?["start"] != null ? DateTime.parse(gameData!["start"] as String) : null,
         gameFinishTime: gameData?["finish"] != null ? DateTime.parse(gameData!["finish"] as String) : null,
+        timeouts: gameData?["timeouts"] != null 
+            ? (gameData!["timeouts"] as List<dynamic>)
+                .map((t) => (
+                  start: DateTime.parse(t["start"] as String),
+                  end: DateTime.parse(t["end"] as String),
+                ))
+                .toList()
+            : null,
         judgeRatings: _extractJudgeRatings(json["players"]),
       );
     }
@@ -138,6 +147,7 @@ class GameLogWithPlayers {
   final RoleTeam? winningTeam;
   final DateTime? gameStartTime;
   final DateTime? gameFinishTime;
+  final List<({DateTime start, DateTime end})>? timeouts;
 
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{
@@ -150,13 +160,18 @@ class GameLogWithPlayers {
     
     // Добавляем объект game если есть хотя бы одно поле
     if (gameType != null || gameImportance != null || winningTeam != null || 
-        gameStartTime != null || gameFinishTime != null) {
+        gameStartTime != null || gameFinishTime != null || (timeouts != null && timeouts!.isNotEmpty)) {
       result["game"] = {
         if (gameType != null) "type": gameType!.name,
         if (gameImportance != null) "importance": gameImportance,
         if (winningTeam != null) "winners": winningTeam!.name,
         if (gameStartTime != null) "start": gameStartTime!.toIso8601String(),
         if (gameFinishTime != null) "finish": gameFinishTime!.toIso8601String(),
+        if (timeouts != null && timeouts!.isNotEmpty) 
+          "timeouts": timeouts!.map((t) => {
+            "start": t.start.toIso8601String(),
+            "end": t.end.toIso8601String(),
+          }).toList(),
       };
     }
     

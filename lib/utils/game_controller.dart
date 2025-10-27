@@ -85,6 +85,10 @@ class GameController with ChangeNotifier {
   DateTime? _gameFinishTime;
   
   DateTime? get gameFinishTime => _gameFinishTime;
+  
+  List<({DateTime start, DateTime end})> _timeouts = [];
+  
+  List<({DateTime start, DateTime end})> get timeouts => _timeouts;
 
   GameController();
 
@@ -136,7 +140,14 @@ class GameController with ChangeNotifier {
     _judgeRatings = null;
     _gameStartTime = null;
     _gameFinishTime = null;
+    _timeouts = [];
     _log.debug("Game stopped");
+    notifyListeners();
+  }
+  
+  void addTimeout(DateTime start, DateTime end) {
+    _timeouts.add((start: start, end: end));
+    _log.debug("Timeout added: ${end.difference(start).inSeconds}s");
     notifyListeners();
   }
 
