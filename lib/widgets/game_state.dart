@@ -197,7 +197,7 @@ class BottomGameStateWidget extends StatelessWidget {
       return Counter(
         key: ValueKey('${gameState.currentPlayerNumber}_${currentPlayerVotes}_$isNamedVoting'),
         min: minVotes,
-        max: aliveCount - controller.totalVotes,
+        max: aliveCount - (controller.totalVotes - currentPlayerVotes),
         onValueChanged: isNamedVoting ? null : controller.vote, // Отключаем если именное
         initialValue: currentPlayerVotes,
       );
