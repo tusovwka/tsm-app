@@ -100,16 +100,9 @@ extension _DescribeLogItem on BaseGameLogItem {
         } else {
           result.add("У игрока #$playerNumber снята жёлтая карточка: $oldYellowCards -> $currentYellowCards");
         }
-      case PlayerVotedGameLogItem(
-          voterNumber: final voterNumber,
-          candidateNumber: final candidateNumber,
-          isVoteAdded: final isVoteAdded,
-        ):
-        if (isVoteAdded) {
-          result.add("Игрок #$voterNumber проголосовал за игрока #$candidateNumber");
-        } else {
-          result.add("Игрок #$voterNumber убрал голос с игрока #$candidateNumber");
-        }
+      case PlayerVotedGameLogItem():
+        // Эти записи не отображаются в журнале (используются только для детализации в парсере)
+        break;
       case TimeoutGameLogItem(duration: final duration):
         final minutes = duration.inMinutes;
         final seconds = duration.inSeconds % 60;
