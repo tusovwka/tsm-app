@@ -400,6 +400,21 @@ class Game {
             currentPlayerVotes = null;
           }
           
+          // Для последнего кандидата всегда возвращаем состояние с голосами
+          // (чтобы итоги отображались в журнале перед переходом к следующей стадии)
+          if (isLastCandidate && currentPlayerVotes != null) {
+            return GameStateVoting(
+              stage: state.stage,
+              day: state.day,
+              playerStates: state.playerStates,
+              currentPlayerNumber: nextPlayerNumber,
+              votes: newVotes..addAll({nextPlayerNumber: currentPlayerVotes}),
+              currentPlayerVotes: currentPlayerVotes,
+              detailedVotes: newDetailedVotes ?? currentVotingState.detailedVotes,
+              isNamedVoting: currentVotingState.isNamedVoting,
+            );
+          }
+          
           if (!_config.alwaysContinueVoting && maxVotesPlayers == null ||
               _config.alwaysContinueVoting) {
             return GameStateVoting(

@@ -41,23 +41,26 @@ extension _DescribeLogItem on BaseGameLogItem {
             }
           case GameStateVoting(
             votes: final allVotes,
-            currentPlayerNumber: final pn, 
-            currentPlayerVotes: final currentVotes,
+            currentPlayerNumber: final currentPlayer,
             detailedVotes: final detailedVotes
           ):
-            // Показываем все голоса (завершённые и текущий)
-            for (final entry in allVotes.entries) {
-              final candidateNumber = entry.key;
-              final voteCount = entry.value;
-              
-              // Пропускаем если голосование ещё не началось для этого кандидата
-              if (voteCount == null) continue;
-              
-              if (detailedVotes != null && detailedVotes[candidateNumber] != null && detailedVotes[candidateNumber]!.isNotEmpty) {
-                final voters = detailedVotes[candidateNumber]!.toList()..sort();
-                result.add("Игрок #$candidateNumber получил $voteCount голосов: {${voters.join(', ')}}");
-              } else {
-                result.add("За игрока #$candidateNumber отдано голосов: $voteCount");
+            // Показываем итоги только когда достигли последнего кандидата
+            final isLastCandidate = currentPlayer == allVotes.keys.last;
+            if (isLastCandidate) {
+              // Показываем все финальные голоса
+              for (final entry in allVotes.entries) {
+                final candidateNumber = entry.key;
+                final voteCount = entry.value;
+                
+                // Показываем только установленные голоса
+                if (voteCount == null) continue;
+                
+                if (detailedVotes != null && detailedVotes[candidateNumber] != null && detailedVotes[candidateNumber]!.isNotEmpty) {
+                  final voters = detailedVotes[candidateNumber]!.toList()..sort();
+                  result.add("Игрок #$candidateNumber получил $voteCount голосов: {${voters.join(', ')}}");
+                } else {
+                  result.add("За игрока #$candidateNumber отдано голосов: $voteCount");
+                }
               }
             }
           case GameStateKnockoutVoting(votes: final votes):
