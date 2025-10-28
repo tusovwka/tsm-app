@@ -184,11 +184,17 @@ class BottomGameStateWidget extends StatelessWidget {
       assert(gameState.votes.keys.length > 1, "One or less vote candidates (bug?)");
       final aliveCount = controller.players.aliveCount;
       final currentPlayerVotes = gameState.currentPlayerVotes ?? 0;
+      final isLastCandidate = gameState.votes.keys.last == gameState.currentPlayerNumber;
       final int minVotes;
-      if (gameState.votes.keys.last == gameState.currentPlayerNumber) {
+      final int maxVotes;
+      
+      if (isLastCandidate) {
+        // Для последнего кандидата голоса фиксированы (остаток)
         minVotes = currentPlayerVotes;
+        maxVotes = currentPlayerVotes;
       } else {
         minVotes = 0;
+        maxVotes = aliveCount - (controller.totalVotes - currentPlayerVotes);
       }
       
       // Проверяем режим голосования
@@ -197,8 +203,9 @@ class BottomGameStateWidget extends StatelessWidget {
       return Counter(
         key: ValueKey('${gameState.currentPlayerNumber}_${currentPlayerVotes}_$isNamedVoting'),
         min: minVotes,
-        max: aliveCount - (controller.totalVotes - currentPlayerVotes),
-        onValueChanged: isNamedVoting ? null : controller.vote, // Отключаем если именное
+        max: maxVotes,
+        // Отключаем Counter если: именное голосование ИЛИ последний кандидат
+        onValueChanged: (isNamedVoting || isLastCandidate) ? null : controller.vote,
         initialValue: currentPlayerVotes,
       );
     }

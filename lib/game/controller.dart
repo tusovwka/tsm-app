@@ -306,17 +306,13 @@ class Game {
             currentPlayerIndex: 0,
           );
         }
-        final isFinalVoting = state.stage != GameStage.preVoting;
         return GameStateVoting(
-          stage: isFinalVoting ? GameStage.finalVoting : GameStage.voting,
+          stage: state.stage == GameStage.preVoting ? GameStage.voting : GameStage.finalVoting,
           day: state.day,
           playerStates: state.playerStates,
           currentPlayerNumber: pns.first,
           votes: LinkedHashMap.fromEntries(pns.map((player) => MapEntry(player, null))),
           currentPlayerVotes: null,
-          // Для finalVoting автоматически включаем именной режим
-          isNamedVoting: isFinalVoting ? true : null,
-          detailedVotes: isFinalVoting ? {} : null,
         );
       case GameStateVoting(
           stage: GameStage.voting || GameStage.finalVoting,

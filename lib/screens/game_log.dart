@@ -40,15 +40,25 @@ extension _DescribeLogItem on BaseGameLogItem {
               result.add("Игрок #$pn выставил на голосование игрока #${accusations[pn]}");
             }
           case GameStateVoting(
+            votes: final allVotes,
             currentPlayerNumber: final pn, 
-            currentPlayerVotes: final votes,
+            currentPlayerVotes: final currentVotes,
             detailedVotes: final detailedVotes
           ):
-            if (detailedVotes != null && detailedVotes[pn] != null && detailedVotes[pn]!.isNotEmpty) {
-              final voters = detailedVotes[pn]!.toList()..sort();
-              result.add("Игрок #$pn получил ${votes ?? 0} голосов: {${voters.join(', ')}}");
-            } else {
-              result.add("За игрока #$pn отдано голосов: ${votes ?? 0}");
+            // Показываем все голоса (завершённые и текущий)
+            for (final entry in allVotes.entries) {
+              final candidateNumber = entry.key;
+              final voteCount = entry.value;
+              
+              // Пропускаем если голосование ещё не началось для этого кандидата
+              if (voteCount == null) continue;
+              
+              if (detailedVotes != null && detailedVotes[candidateNumber] != null && detailedVotes[candidateNumber]!.isNotEmpty) {
+                final voters = detailedVotes[candidateNumber]!.toList()..sort();
+                result.add("Игрок #$candidateNumber получил $voteCount голосов: {${voters.join(', ')}}");
+              } else {
+                result.add("За игрока #$candidateNumber отдано голосов: $voteCount");
+              }
             }
           case GameStateKnockoutVoting(votes: final votes):
             result.add("За подъём всех игроков отдано голосов: $votes");
