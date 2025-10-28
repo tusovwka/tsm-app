@@ -38,9 +38,10 @@ extension BaseGameStateJson on BaseGameState {
             "currentPlayerNumber": currentPlayerNumber,
             "currentPlayerVotes": currentPlayerVotes,
           },
-        GameStateKnockoutVoting(:final playerNumbers, :final votes) => {
+        GameStateKnockoutVoting(:final playerNumbers, :final votes, :final detailedVotes) => {
             "playerNumbers": playerNumbers,
             "votes": votes,
+            if (detailedVotes != null) "detailedVotes": detailedVotes.toList(),
           },
         GameStateWithPlayers(:final playerNumbers) => {
             "playerNumbers": playerNumbers,

@@ -183,6 +183,11 @@ class _PlayerButtonsState extends State<PlayerButtons> {
           controller.togglePlayerVote(playerNumber, candidateNumber);
         }
       }
+    } else if (controller.state case GameStateKnockoutVoting(detailedVotes: final detailedVotes)) {
+      // Во время голосования за подъем стола - нажатие на игрока переключает его голос
+      if (player.state.isAlive && detailedVotes != null) {
+        controller.toggleKnockoutVote(playerNumber);
+      }
     } else if (!player.state.isAlive ||
         !controller.state.stage
             .isAnyOf(const [GameStage.nightKill, GameStage.bestTurn, GameStage.speaking])) {
@@ -220,6 +225,9 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       GameStateVoting(currentPlayerNumber: final candidateNumber, detailedVotes: final detailedVotes) =>
         // Зеленым подсвечиваем игроков, которые проголосовали за текущего кандидата
         detailedVotes?[candidateNumber]?.contains(playerNumber) ?? false,
+      GameStateKnockoutVoting(detailedVotes: final detailedVotes) =>
+        // Зеленым подсвечиваем игроков, которые проголосовали за подъем стола
+        detailedVotes?.contains(playerNumber) ?? false,
       _ => false,
     };
     final player = controller.players.getByNumber(playerNumber);

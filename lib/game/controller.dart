@@ -853,6 +853,51 @@ class Game {
     );
   }
 
+  void toggleKnockoutVote(int voterNumber) {
+    final currentState = state;
+    if (currentState is! GameStateKnockoutVoting) {
+      throw StateError("Can't toggle knockout vote in state ${state.stage}");
+    }
+    
+    // Инициализируем detailedVotes если его нет
+    final detailedVotes = Set<int>.from(currentState.detailedVotes ?? {});
+    
+    // Переключаем голос
+    final isVoteAdded = !detailedVotes.contains(voterNumber);
+    
+    if (isVoteAdded) {
+      detailedVotes.add(voterNumber);
+    } else {
+      detailedVotes.remove(voterNumber);
+    }
+    
+    // Обновляем количество голосов
+    final newVotesCount = detailedVotes.length;
+    
+    // Записываем в лог
+    _log.add(PlayerVotedGameLogItem(
+      day: state.day,
+      voterNumber: voterNumber,
+      candidateNumber: 0, // Для knockout нет кандидата
+      isVoteAdded: isVoteAdded,
+      stage: currentState.stage,
+    ));
+    
+    // Обновляем состояние: заменяем последний StateChangeGameLogItem вместо добавления нового
+    final lastItem = _log.last;
+    if (lastItem is StateChangeGameLogItem) {
+      _log.pop();
+    }
+    _log.add(
+      StateChangeGameLogItem(
+        newState: currentState.copyWith(
+          detailedVotes: detailedVotes,
+          votes: newVotesCount,
+        ),
+      ),
+    );
+  }
+
   void warnPlayer(int number) {
     if (!isActive) {
       throw StateError("Can't warn player in state ${state.stage}");

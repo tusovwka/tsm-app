@@ -63,8 +63,13 @@ extension _DescribeLogItem on BaseGameLogItem {
                 }
               }
             }
-          case GameStateKnockoutVoting(votes: final votes):
-            result.add("За подъём всех игроков отдано голосов: $votes");
+          case GameStateKnockoutVoting(votes: final votes, detailedVotes: final detailedVotes):
+            if (detailedVotes != null && detailedVotes.isNotEmpty) {
+              final voters = detailedVotes.toList()..sort();
+              result.add("За подъём всех игроков отдано голосов: $votes: {${voters.join(', ')}}");
+            } else {
+              result.add("За подъём всех игроков отдано голосов: $votes");
+            }
           case GameStateBestTurn(currentPlayerNumber: final pn, playerNumbers: final pns):
             if (pns.isNotEmpty) {
               result.add(

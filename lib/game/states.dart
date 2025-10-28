@@ -338,12 +338,14 @@ class GameStateVoting extends BaseGameState {
 class GameStateKnockoutVoting extends BaseGameState {
   final List<int> playerNumbers;
   final int votes;
+  final Set<int>? detailedVotes;
 
   const GameStateKnockoutVoting({
     required super.day,
     required super.playerStates,
     required this.playerNumbers,
     required this.votes,
+    this.detailedVotes,
   }) : super(stage: GameStage.knockoutVoting);
 
   @override
@@ -355,10 +357,11 @@ class GameStateKnockoutVoting extends BaseGameState {
           day == other.day &&
           playerStates == other.playerStates &&
           playerNumbers == other.playerNumbers &&
-          votes == other.votes;
+          votes == other.votes &&
+          const SetEquality<int>().equals(detailedVotes, other.detailedVotes);
 
   @override
-  int get hashCode => Object.hash(stage, day, playerStates, playerNumbers, votes);
+  int get hashCode => Object.hash(stage, day, playerStates, playerNumbers, votes, const SetEquality<int>().hash(detailedVotes));
 
   @useResult
   GameStateKnockoutVoting copyWith({
@@ -366,12 +369,14 @@ class GameStateKnockoutVoting extends BaseGameState {
     List<PlayerState>? playerStates,
     List<int>? playerNumbers,
     int? votes,
+    Set<int>? detailedVotes,
   }) =>
       GameStateKnockoutVoting(
         day: day ?? this.day,
         playerStates: playerStates ?? this.playerStates,
         playerNumbers: playerNumbers ?? this.playerNumbers,
         votes: votes ?? this.votes,
+        detailedVotes: detailedVotes ?? this.detailedVotes,
       );
 }
 

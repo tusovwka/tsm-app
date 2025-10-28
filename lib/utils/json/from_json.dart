@@ -167,6 +167,9 @@ BaseGameState gameStateFromJson(Map<String, dynamic> json, {required GameLogVers
             json[json.containsKey("votes") ? "votes" : "votesForDropTable"] as int,
           GameLogVersion.v2 => json["votes"] as int,
         },
+        detailedVotes: json["detailedVotes"] != null
+            ? (json["detailedVotes"] as List<dynamic>).cast<int>().toSet()
+            : null,
       ),
     GameStage.nightKill => GameStateNightKill(
         day: day,

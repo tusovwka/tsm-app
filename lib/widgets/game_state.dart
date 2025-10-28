@@ -211,11 +211,13 @@ class BottomGameStateWidget extends StatelessWidget {
     }
 
     if (gameState is GameStateKnockoutVoting) {
+      final hasDetailedVotes = gameState.detailedVotes != null;
       return Counter(
-        key: const ValueKey("dropTableVoting"),
+        key: ValueKey("dropTableVoting_${gameState.votes}_$hasDetailedVotes"),
         min: 0,
         max: controller.players.aliveCount,
-        onValueChanged: controller.vote,
+        // Отключаем Counter если активен именной режим
+        onValueChanged: hasDetailedVotes ? null : controller.vote,
         initialValue: gameState.votes,
       );
     }
