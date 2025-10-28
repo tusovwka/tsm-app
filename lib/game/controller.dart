@@ -306,13 +306,17 @@ class Game {
             currentPlayerIndex: 0,
           );
         }
+        final isFinalVoting = state.stage != GameStage.preVoting;
         return GameStateVoting(
-          stage: state.stage == GameStage.preVoting ? GameStage.voting : GameStage.finalVoting,
+          stage: isFinalVoting ? GameStage.finalVoting : GameStage.voting,
           day: state.day,
           playerStates: state.playerStates,
           currentPlayerNumber: pns.first,
           votes: LinkedHashMap.fromEntries(pns.map((player) => MapEntry(player, null))),
           currentPlayerVotes: null,
+          // Для finalVoting автоматически включаем именной режим
+          isNamedVoting: isFinalVoting ? true : null,
+          detailedVotes: isFinalVoting ? {} : null,
         );
       case GameStateVoting(
           stage: GameStage.voting || GameStage.finalVoting,
@@ -377,6 +381,17 @@ class Game {
               if (playerState.isAlive && !allVoters.contains(i)) {
                 remainingVoters.add(i);
               }
+            }
+            
+            // Записываем в лог голоса всех оставшихся игроков за последнего кандидата
+            for (final voterNumber in remainingVoters) {
+              _log.add(PlayerVotedGameLogItem(
+                day: state.day,
+                voterNumber: voterNumber,
+                candidateNumber: nextPlayerNumber,
+                isVoteAdded: true,
+                stage: currentVotingState.stage,
+              ));
             }
             
             newDetailedVotes = Map<int, Set<int>>.from(currentVotingState.detailedVotes ?? {});
