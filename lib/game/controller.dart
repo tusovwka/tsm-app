@@ -384,6 +384,7 @@ class Game {
             }
             
             // Записываем в лог голоса всех оставшихся игроков за последнего кандидата
+            // (только если они еще не проголосовали)
             for (final voterNumber in remainingVoters) {
               _log.add(PlayerVotedGameLogItem(
                 day: state.day,
