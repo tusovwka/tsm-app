@@ -818,7 +818,12 @@ class Game {
       stage: currentState.stage,
     ));
     
-    // Обновляем состояние
+    // Обновляем состояние: заменяем последний StateChangeGameLogItem вместо добавления нового
+    // Это предотвращает загрязнение лога промежуточными состояниями
+    final lastItem = _log.last;
+    if (lastItem is StateChangeGameLogItem) {
+      _log.pop(); // Удаляем последний StateChangeGameLogItem
+    }
     _log.add(
       StateChangeGameLogItem(
         newState: currentState.copyWith(
