@@ -744,6 +744,11 @@ class Game {
   void vote(int count) {
     final currentState = state;
     if (currentState is GameStateKnockoutVoting) {
+      // Заменяем последний StateChangeGameLogItem вместо добавления нового
+      final lastItem = _log.lastOrNull;
+      if (lastItem is StateChangeGameLogItem && lastItem.newState is GameStateKnockoutVoting) {
+        _log.pop();
+      }
       _log.add(
         StateChangeGameLogItem(
           newState: currentState.copyWith(votes: count),
@@ -762,6 +767,14 @@ class Game {
       // Обновляем состояние БЕЗ detailedVotes (анонимное голосование)
       final newVotes = LinkedHashMap<int, int?>.from(currentState.votes);
       newVotes[candidateNumber] = count;
+      
+      // Заменяем последний StateChangeGameLogItem вместо добавления нового
+      final lastItem = _log.lastOrNull;
+      if (lastItem is StateChangeGameLogItem && 
+          lastItem.newState is GameStateVoting &&
+          (lastItem.newState as GameStateVoting).currentPlayerNumber == candidateNumber) {
+        _log.pop();
+      }
       
       _log.add(
         StateChangeGameLogItem(
