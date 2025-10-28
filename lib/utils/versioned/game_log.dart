@@ -150,10 +150,35 @@ class GameLogWithPlayers {
   final List<({DateTime start, DateTime end})>? timeouts;
 
   Map<String, dynamic> toJson() {
+    // Собираем информацию об удалениях из лога
+    final kickedPlayers = <int>{};
+    final ppkPlayers = <int>{};  // ППК - победа другой команды
+    
+    for (final logItem in log) {
+      if (logItem is PlayerKickedGameLogItem) {
+        kickedPlayers.add(logItem.playerNumber);
+        if (logItem.isOtherTeamWin) {
+          ppkPlayers.add(logItem.playerNumber);
+        }
+      }
+    }
+    
     final result = <String, dynamic>{
       "log": log.map((e) => e.toJson()).toList(),
       "players": players.map((player) {
-        final rating = judgeRatings?[player.number];
+        var rating = judgeRatings?[player.number];
+        
+        // Устанавливаем дефолтные оценки, если не заданы
+        if (rating == null || rating == 0) {
+          if (ppkPlayers.contains(player.number)) {
+            rating = -2.5;  // ППК - победа другой команды
+          } else if (kickedPlayers.contains(player.number)) {
+            rating = 1.5;   // Удален, но не ППК
+          } else {
+            rating = 2.5;   // Обычная оценка
+          }
+        }
+        
         return player.toJson(judgeRating: rating);
       }).toList(),
     };
