@@ -183,9 +183,9 @@ class _PlayerButtonsState extends State<PlayerButtons> {
           controller.togglePlayerVote(playerNumber, candidateNumber);
         }
       }
-    } else if (controller.state case GameStateKnockoutVoting(detailedVotes: final detailedVotes)) {
+    } else if (controller.state is GameStateKnockoutVoting) {
       // Во время голосования за подъем стола - нажатие на игрока переключает его голос
-      if (player.state.isAlive && detailedVotes != null) {
+      if (player.state.isAlive) {
         controller.toggleKnockoutVote(playerNumber);
       }
     } else if (!player.state.isAlive ||

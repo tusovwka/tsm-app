@@ -358,10 +358,10 @@ class GameStateKnockoutVoting extends BaseGameState {
           playerStates == other.playerStates &&
           playerNumbers == other.playerNumbers &&
           votes == other.votes &&
-          const SetEquality<int>().equals(detailedVotes, other.detailedVotes);
+          SetEquality<int>().equals(detailedVotes, other.detailedVotes);
 
   @override
-  int get hashCode => Object.hash(stage, day, playerStates, playerNumbers, votes, const SetEquality<int>().hash(detailedVotes));
+  int get hashCode => Object.hash(stage, day, playerStates, playerNumbers, votes, SetEquality<int>().hash(detailedVotes));
 
   @useResult
   GameStateKnockoutVoting copyWith({
