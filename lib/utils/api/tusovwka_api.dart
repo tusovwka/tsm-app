@@ -4,6 +4,9 @@ import "package:meta/meta.dart";
 
 import "../log.dart";
 
+// Для веб-платформы используем BrowserClient с поддержкой credentials
+import "package:http/browser_client.dart" if (dart.library.io) "package:http/http.dart";
+
 class TusovwkaApiException implements Exception {
   final String message;
   final int? statusCode;
@@ -56,7 +59,20 @@ class TusovwkaApiClient {
 
   final http.Client _client;
 
-  TusovwkaApiClient({http.Client? client}) : _client = client ?? http.Client();
+  TusovwkaApiClient({http.Client? client}) : _client = client ?? _createDefaultClient();
+
+  // Создаем клиент с поддержкой cookie для веб-платформы
+  static http.Client _createDefaultClient() {
+    try {
+      // На веб-платформе используем BrowserClient с withCredentials
+      final browserClient = BrowserClient();
+      browserClient.withCredentials = true;
+      return browserClient;
+    } catch (e) {
+      // На других платформах используем обычный Client
+      return http.Client();
+    }
+  }
 
   void dispose() {
     _client.close();
@@ -145,7 +161,8 @@ class TusovwkaApiClient {
   }
 
   /// Публикует игру на сервер
-  Future<void> addGame(Map<String, dynamic> gameData, {String? cookie}) async {
+  /// Cookie отправляются автоматически через BrowserClient (для веб) с withCredentials=true
+  Future<void> addGame(Map<String, dynamic> gameData) async {
     try {
       _log.info("Publishing game to API...");
       
@@ -153,10 +170,6 @@ class TusovwkaApiClient {
         "Content-Type": "application/json",
         "Accept": "application/json",
       };
-      
-      if (cookie != null && cookie.isNotEmpty) {
-        headers["Cookie"] = cookie;
-      }
       
       final response = await _client
           .post(

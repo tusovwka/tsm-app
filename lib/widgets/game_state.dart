@@ -88,11 +88,9 @@ class BottomGameStateWidget extends StatelessWidget {
     );
     
     try {
-      final playerRepo = context.read<PlayerRepo>();
       final apiClient = TusovwkaApiClient();
       
-      // Получаем cookie из репозитория (если есть)
-      // TODO: Нужно добавить хранение cookie в репозитории или настройках
+      // Cookie с session_id отправляются автоматически через BrowserClient
       await apiClient.addGame(vgl.toJson());
       
       if (!context.mounted) {
