@@ -51,7 +51,7 @@ class TusovwkaPlayer {
 
 class TusovwkaApiClient {
   static final _log = Logger("TusovwkaApiClient");
-  static const String _baseUrl = "https://api.tusovwka.ru/mafia";
+  static const String _baseUrl = "https://api.tusovwka.ru/mf";
   static const Duration _timeout = Duration(seconds: 10);
 
   final http.Client _client;
@@ -67,30 +67,57 @@ class TusovwkaApiClient {
     try {
       _log.info("Fetching players from API...");
       
-      final response = await _client
-          .get(
-            Uri.parse("$_baseUrl/players"),
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-            },
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(utf8.decode(response.bodyBytes));
-        final players = jsonList
-            .map((json) => TusovwkaPlayer.fromJson(json as Map<String, dynamic>))
-            .toList();
+      final List<TusovwkaPlayer> allPlayers = [];
+      int page = 1;
+      TusovwkaPlayer? lastPlayerFromPreviousPage;
+      
+      while (true) {
+        _log.debug("Fetching page $page...");
         
-        _log.info("Successfully fetched ${players.length} players from API");
-        return players;
-      } else {
-        throw TusovwkaApiException(
-          "Failed to fetch players: ${response.reasonPhrase}",
-          response.statusCode,
-        );
+        final response = await _client
+            .get(
+              Uri.parse("$_baseUrl/players?page=$page"),
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+              },
+            )
+            .timeout(_timeout);
+
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonList = json.decode(utf8.decode(response.bodyBytes));
+          
+          if (jsonList.isEmpty) {
+            _log.debug("Page $page returned no results, stopping");
+            break;
+          }
+          
+          final players = jsonList
+              .map((json) => TusovwkaPlayer.fromJson(json as Map<String, dynamic>))
+              .toList();
+          
+          final lastPlayerFromCurrentPage = players.last;
+          
+          // Проверяем, не начались ли повторения
+          if (lastPlayerFromPreviousPage != null && 
+              lastPlayerFromPreviousPage == lastPlayerFromCurrentPage) {
+            _log.debug("Page $page has same last player as previous page, stopping");
+            break;
+          }
+          
+          allPlayers.addAll(players);
+          lastPlayerFromPreviousPage = lastPlayerFromCurrentPage;
+          page++;
+        } else {
+          throw TusovwkaApiException(
+            "Failed to fetch players: ${response.reasonPhrase}",
+            response.statusCode,
+          );
+        }
       }
+      
+      _log.info("Successfully fetched ${allPlayers.length} players from API ($page pages)");
+      return allPlayers;
     } on http.ClientException catch (e) {
       _log.error("Network error while fetching players: $e");
       throw TusovwkaApiException("Network error: ${e.message}");
