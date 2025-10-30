@@ -67,7 +67,7 @@ class GameBottomControlBar extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Введите коэффициент интереса (Ci):"),
+              const Text("Введите компенсацию игроку (Ci):"),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

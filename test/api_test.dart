@@ -20,18 +20,29 @@ void main() {
       apiClient.dispose();
     });
 
-    test("should parse API response correctly", () async {
+    test("should parse API response correctly with pagination", () async {
       // Arrange
-      final mockResponse = '''
-      [
+      final page1 = '''
+      {"players": [
         {"member_id": 1, "nickname": "Player1"},
-        {"member_id": 2, "nickname": "Player2"},
+        {"member_id": 2, "nickname": "Player2"}
+      ], "max_page": 2}
+      ''';
+      final page2 = '''
+      {"players": [
         {"member_id": 3, "nickname": "Player3"}
-      ]
+      ], "max_page": 2}
       ''';
       
       when(mockClient.get(any, headers: anyNamed("headers")))
-          .thenAnswer((_) async => http.Response(mockResponse, 200));
+          .thenAnswer((invocation) async {
+        final uri = invocation.positionalArguments.first as Uri;
+        final page = int.parse(uri.queryParameters['page'] ?? '1');
+        if (page == 1) {
+          return http.Response(page1, 200);
+        }
+        return http.Response(page2, 200);
+      });
 
       // Act
       final players = await apiClient.getPlayers();
@@ -46,7 +57,7 @@ void main() {
       expect(players[2].nickname, equals("Player3"));
     });
 
-    test("should handle API errors", () async {
+    test("should handle API errors on first page", () async {
       // Arrange
       when(mockClient.get(any, headers: anyNamed("headers")))
           .thenAnswer((_) async => http.Response("Not Found", 404));
