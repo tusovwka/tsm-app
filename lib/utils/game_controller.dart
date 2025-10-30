@@ -78,6 +78,14 @@ class GameController with ChangeNotifier {
     _judgeRatings = value;
   }
 
+  Map<int, double>? _bestTurnCi;
+
+  Map<int, double>? get bestTurnCi => _bestTurnCi;
+
+  set bestTurnCi(Map<int, double>? value) {
+    _bestTurnCi = value;
+  }
+
   DateTime? _gameStartTime;
   
   DateTime? get gameStartTime => _gameStartTime;
@@ -138,6 +146,7 @@ class GameController with ChangeNotifier {
     _gameType = null;
     _gameImportance = null;
     _judgeRatings = null;
+    _bestTurnCi = null;
     _gameStartTime = null;
     _gameFinishTime = null;
     _timeouts = [];

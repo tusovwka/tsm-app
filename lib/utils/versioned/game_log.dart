@@ -72,6 +72,7 @@ class GameLogWithPlayers {
     this.gameType,
     this.gameImportance,
     this.judgeRatings,
+    this.bestTurnCi,
     this.winningTeam,
     this.gameStartTime,
     this.gameFinishTime,
@@ -108,6 +109,7 @@ class GameLogWithPlayers {
                 .toList()
             : null,
         judgeRatings: _extractJudgeRatings(json["players"]),
+        bestTurnCi: _extractBestTurnCi(json["players"]),
       );
     }
     if (json is List<dynamic> && version < GameLogVersion.v2) {
@@ -139,11 +141,28 @@ class GameLogWithPlayers {
     return ratings.isEmpty ? null : ratings;
   }
 
+  static Map<int, double>? _extractBestTurnCi(dynamic playersJson) {
+    if (playersJson == null) return null;
+    
+    final ciValues = <int, double>{};
+    for (final playerJson in playersJson as List<dynamic>) {
+      final playerMap = playerJson as Map<String, dynamic>;
+      if (playerMap.containsKey("bestTurnCi")) {
+        final number = playerMap["number"] as int;
+        final ci = (playerMap["bestTurnCi"] as num).toDouble();
+        ciValues[number] = ci;
+      }
+    }
+    
+    return ciValues.isEmpty ? null : ciValues;
+  }
+
   final Iterable<BaseGameLogItem> log;
   final Iterable<Player> players;
   final GameType? gameType;
   final double? gameImportance;
   final Map<int, double>? judgeRatings;
+  final Map<int, double>? bestTurnCi;
   final RoleTeam? winningTeam;
   final DateTime? gameStartTime;
   final DateTime? gameFinishTime;
@@ -179,7 +198,9 @@ class GameLogWithPlayers {
           }
         }
         
-        return player.toJson(judgeRating: rating);
+        final ci = bestTurnCi?[player.number];
+        
+        return player.toJson(judgeRating: rating, bestTurnCi: ci);
       }).toList(),
     };
     

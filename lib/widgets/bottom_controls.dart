@@ -32,8 +32,81 @@ class GameBottomControlBar extends StatelessWidget {
     if (nextStateAssumption == null) {
       return;
     }
+    
+    // Проверяем, если текущее состояние - GameStateBestTurn, показываем диалог ввода Ci
+    if (controller.state is GameStateBestTurn) {
+      final currentState = controller.state as GameStateBestTurn;
+      final playerNumber = currentState.currentPlayerNumber;
+      
+      // Показываем диалог ввода Ci
+      final ci = await _showCiInputDialog(context, playerNumber);
+      
+      if (!context.mounted) {
+        return;
+      }
+      
+      // Если пользователь ввел значение, сохраняем его
+      if (ci != null) {
+        controller.bestTurnCi ??= {};
+        controller.bestTurnCi![playerNumber] = ci;
+      }
+    }
+    
     controller.setNextState();
     onTapNext?.call();
+  }
+  
+  Future<double?> _showCiInputDialog(BuildContext context, int playerNumber) async {
+    double currentValue = 0.0;
+    
+    return showDialog<double>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text("Ci для игрока #$playerNumber"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Введите коэффициент интереса (Ci):"),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove),
+                    onPressed: currentValue > 0
+                        ? () => setState(() => currentValue = (currentValue - 0.5).clamp(0.0, double.infinity))
+                        : null,
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      currentValue.toStringAsFixed(1),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () => setState(() => currentValue += 0.5),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Пропустить"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(currentValue),
+              child: const Text("Сохранить"),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
