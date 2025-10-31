@@ -27,9 +27,17 @@ class TusovwkaPlayer {
   });
 
   factory TusovwkaPlayer.fromJson(Map<String, dynamic> json) {
+    final rawNickname = json["nickname"] as String;
+    final genderPrefix = json["gender_prefix"] as String?;
+    
+    // Формируем ник: если есть gender_prefix, добавляем его перед ником
+    final nickname = genderPrefix != null && genderPrefix.isNotEmpty
+        ? "$genderPrefix $rawNickname"
+        : rawNickname;
+    
     return TusovwkaPlayer(
       memberId: json["member_id"] as int,
-      nickname: json["nickname"] as String,
+      nickname: nickname,
     );
   }
 
