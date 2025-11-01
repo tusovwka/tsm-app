@@ -48,6 +48,30 @@ class Game {
     return Game._(log, players, config ?? const GameConfig());
   }
 
+  /// Creates a game from an existing log and players.
+  /// This is used to restore a game from a saved log.
+  factory Game.fromLog(
+    Iterable<BaseGameLogItem> log,
+    List<Player> players, {
+    GameConfig? config,
+  }) {
+    final needsSorting = players.indexed.any((r) => r.$2.number != r.$1 + 1);
+    final List<Player> sortedPlayers;
+    if (needsSorting) {
+      sortedPlayers = List.of(players)..sort((a, b) => a.number.compareTo(b.number));
+    } else {
+      sortedPlayers = players;
+    }
+    if (sortedPlayers.length != 10) {
+      _logger.warning("Players count is not 10, unexpected things may happen");
+    }
+    final gameLog = GameLog();
+    for (final item in log) {
+      gameLog.add(item);
+    }
+    return Game._(gameLog, sortedPlayers, config ?? const GameConfig());
+  }
+
   Game._(this._log, this._players, this._config);
 
   /// Returns current game state.

@@ -138,6 +138,56 @@ class GameController with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Restores a game from a saved log.
+  /// This will recreate the game state as it was when saved.
+  void restoreGame(
+    GameLogWithPlayers gameLogWithPlayers, {
+    required GameRulesModel rules,
+  }) {
+    // Восстанавливаем игру из журнала
+    _game = Game.fromLog(
+      gameLogWithPlayers.log,
+      gameLogWithPlayers.players.toList(),
+      config: rules.toGameConfig(),
+    );
+    
+    // Восстанавливаем информацию об игроках
+    final playersList = gameLogWithPlayers.players.toList();
+    final playerCount = playersList.length.clamp(0, 10);
+    _nicknames = List<String?>.generate(10, (i) {
+      if (i < playerCount) {
+        return playersList[i].nickname;
+      }
+      return null;
+    });
+    
+    _roles = List<PlayerRole?>.generate(10, (i) {
+      if (i < playerCount) {
+        return playersList[i].role;
+      }
+      return null;
+    });
+    
+    _memberIds = List<int?>.generate(10, (i) {
+      if (i < playerCount) {
+        return playersList[i].memberId;
+      }
+      return null;
+    });
+    
+    // Восстанавливаем метаданные игры
+    _gameType = gameLogWithPlayers.gameType;
+    _gameImportance = gameLogWithPlayers.gameImportance;
+    _judgeRatings = gameLogWithPlayers.judgeRatings;
+    _bestTurnCi = gameLogWithPlayers.bestTurnCi;
+    _gameStartTime = gameLogWithPlayers.gameStartTime;
+    _gameFinishTime = gameLogWithPlayers.gameFinishTime;
+    _timeouts = gameLogWithPlayers.timeouts?.toList() ?? [];
+    
+    _log.debug("Game restored from log");
+    notifyListeners();
+  }
+
   void stopGame() {
     _game = null;
     _roles = null;

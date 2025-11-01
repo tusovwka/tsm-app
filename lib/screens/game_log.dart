@@ -13,6 +13,7 @@ import "../utils/game_controller.dart";
 import "../utils/load_save_file.dart";
 import "../utils/log.dart";
 import "../utils/navigation.dart";
+import "../utils/rules.dart";
 import "../utils/ui.dart";
 import "../utils/versioned/game_log.dart";
 
@@ -185,7 +186,36 @@ class GameLogScreen extends StatelessWidget {
         throw ContextNotMountedError();
       }
     }
-    await openGameLogPage(context, logFromFile.value.log.toUnmodifiableList());
+    
+    // Восстанавливаем игру из журнала
+    final controller = context.read<GameController>();
+    final rules = context.read<GameRulesModel>();
+    
+    try {
+      controller.restoreGame(logFromFile.value, rules: rules);
+      
+      if (!context.mounted) {
+        return;
+      }
+      
+      // Закрываем текущий экран и возвращаемся на главный экран
+      Navigator.of(context).pop();
+      
+      // Показываем уведомление об успешном восстановлении
+      showSnackBar(
+        context,
+        const SnackBar(content: Text("Игра восстановлена из журнала")),
+      );
+    } catch (e, st) {
+      _log.error("Error restoring game: e=$e\n$st");
+      if (!context.mounted) {
+        return;
+      }
+      showSnackBar(
+        context,
+        SnackBar(content: Text("Ошибка восстановления игры: $e")),
+      );
+    }
   }
 
   Future<void> _onSavePressed(BuildContext context) async {
