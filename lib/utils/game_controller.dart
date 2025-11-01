@@ -161,12 +161,7 @@ class GameController with ChangeNotifier {
       return null;
     });
     
-    _roles = List<PlayerRole?>.generate(10, (i) {
-      if (i < playerCount) {
-        return playersList[i].role;
-      }
-      return null;
-    });
+    _roles = playersList.map((p) => p.role).toList();
     
     _memberIds = List<int?>.generate(10, (i) {
       if (i < playerCount) {
