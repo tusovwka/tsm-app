@@ -692,10 +692,11 @@ class Game {
 
   void togglePlayerSelected(int playerNumber) {
     final player = players.getByNumber(playerNumber);
-    if (!player.state.isAlive) {
+    final currentState = state;
+    // Для "Лучший Ход" разрешаем выбирать мертвых игроков
+    if (!player.state.isAlive && currentState is! GameStateBestTurn) {
       throw StateError("Can't select dead player");
     }
-    final currentState = state;
     if (currentState
         case GameStateSpeaking(accusations: final accusations, currentPlayerNumber: final pn)) {
       final newAccusations = LinkedHashMap.of(accusations);

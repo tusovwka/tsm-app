@@ -188,9 +188,12 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       if (player.state.isAlive) {
         controller.toggleKnockoutVote(playerNumber);
       }
+    } else if (controller.state.stage == GameStage.bestTurn) {
+      // Для "Лучший Ход" разрешаем выбирать мертвых игроков
+      controller.togglePlayerSelected(player.number);
     } else if (!player.state.isAlive ||
         !controller.state.stage
-            .isAnyOf(const [GameStage.nightKill, GameStage.bestTurn, GameStage.speaking])) {
+            .isAnyOf(const [GameStage.nightKill, GameStage.speaking])) {
       return;
     } else {
       controller.togglePlayerSelected(player.number);
@@ -259,6 +262,8 @@ class _PlayerButtonsState extends State<PlayerButtons> {
       canTap = player.state.isAlive && canTapDuringVoting;
     } else if (controller.state.stage == GameStage.nightCheck) {
       canTap = true; // Проверки доступны всегда
+    } else if (controller.state.stage == GameStage.bestTurn) {
+      canTap = true; // Для "Лучший Ход" разрешаем выбирать всех игроков, включая мертвых
     } else {
       canTap = player.state.isAlive;
     }
