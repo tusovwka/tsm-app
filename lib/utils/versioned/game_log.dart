@@ -114,7 +114,7 @@ class GameLogWithPlayers {
             : null,
         judgeRatings: playersJson != null ? _extractJudgeRatings(playersJson) : null,
         judges: gameData?["judges"] != null 
-            ? (gameData!["judges"] as List<dynamic>).cast<int>().toList()
+            ? _extractJudgesMemberIds(gameData!["judges"] as List<dynamic>)
             : null,
         bestTurnCi: playersJson != null ? _extractBestTurnCi(playersJson) : null,
       );
@@ -143,7 +143,7 @@ class GameLogWithPlayers {
             : null,
         judgeRatings: _extractJudgeRatings(json["players"]),
         judges: json["judges"] != null 
-            ? (json["judges"] as List<dynamic>).cast<int>().toList()
+            ? _extractJudgesMemberIds(json["judges"] as List<dynamic>)
             : null,
         bestTurnCi: _extractBestTurnCi(json["players"]),
       );
@@ -193,6 +193,21 @@ class GameLogWithPlayers {
     return ciValues.isEmpty ? null : ciValues;
   }
 
+  static List<int> _extractJudgesMemberIds(List<dynamic> judgesJson) {
+    // Поддерживаем оба формата: массив чисел (старый) и массив объектов (новый)
+    return judgesJson.map((item) {
+      if (item is int) {
+        // Старый формат - просто число
+        return item;
+      } else if (item is Map<String, dynamic>) {
+        // Новый формат - объект с member_id
+        return item["member_id"] as int;
+      } else {
+        throw ArgumentError("Invalid judge format: $item");
+      }
+    }).toList();
+  }
+
   final Iterable<BaseGameLogItem> log;
   final Iterable<Player> players;
   final GameType? gameType;
@@ -205,7 +220,10 @@ class GameLogWithPlayers {
   final DateTime? gameFinishTime;
   final List<({DateTime start, DateTime end})>? timeouts;
 
-  Map<String, dynamic> toJson({GameLogVersion version = GameLogVersion.latest}) {
+  Map<String, dynamic> toJson({
+    GameLogVersion version = GameLogVersion.latest,
+    Map<int, String>? judgeNicknames,
+  }) {
     // Собираем информацию об удалениях из лога
     final kickedPlayers = <int>{};
     final ppkPlayers = <int>{};  // ППК - победа другой команды
@@ -261,7 +279,14 @@ class GameLogWithPlayers {
         }).toList();
       }
       if (judges != null && judges!.isNotEmpty) {
-        gameObj["judges"] = judges!;
+        // Формируем массив объектов с member_id и nickname
+        gameObj["judges"] = judges!.map((memberId) {
+          final nickname = judgeNicknames?[memberId] ?? "Unknown";
+          return {
+            "member_id": memberId,
+            "nickname": nickname,
+          };
+        }).toList();
       }
       
       result["game"] = gameObj;
@@ -290,10 +315,17 @@ class GameLogWithPlayers {
         };
       }
       
-      // Добавляем judges в корневой объект, если есть
-      if (judges != null && judges!.isNotEmpty) {
-        result["judges"] = judges!;
-      }
+        // Добавляем judges в корневой объект, если есть
+        if (judges != null && judges!.isNotEmpty) {
+          // Для v2 сохраняем как массив объектов с member_id и nickname
+          result["judges"] = judges!.map((memberId) {
+            final nickname = judgeNicknames?[memberId] ?? "Unknown";
+            return {
+              "member_id": memberId,
+              "nickname": nickname,
+            };
+          }).toList();
+        }
       
       return result;
     }
@@ -313,8 +345,8 @@ class VersionedGameLog extends Versioned<GameLogVersion, GameLogWithPlayers> {
   dynamic versionToJson(GameLogVersion value) => value.value;
 
   @override
-  Map<String, dynamic> toJson() {
-    final valueJson = value.toJson(version: version);
+  Map<String, dynamic> toJson({Map<int, String>? judgeNicknames}) {
+    final valueJson = value.toJson(version: version, judgeNicknames: judgeNicknames);
     return {
       "version": versionToJson.call(version),
       ...valueJson, // Разворачиваем все поля напрямую (log, game и т.д.)

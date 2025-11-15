@@ -235,8 +235,25 @@ class GameLogScreen extends StatelessWidget {
         timeouts: controller.timeouts.isNotEmpty ? controller.timeouts : null,
       ),
     );
+    
+    // Получаем никнеймы судей из базы данных
+    final playersRepo = context.read<PlayerRepo>();
+    final judgeNicknames = <int, String>{};
+    if (controller.judges != null) {
+      for (final memberId in controller.judges!) {
+        try {
+          final player = playersRepo.data.firstWhere(
+            (e) => e.$2.memberId == memberId,
+          );
+          judgeNicknames[memberId] = player.$2.nickname;
+        } catch (e) {
+          // Игрок не найден в базе, пропускаем
+        }
+      }
+    }
+    
     final fileName = "mafia_game_log_${_fileNameDateFormat.format(DateTime.now())}";
-    final wasSaved = await saveJsonFile(vgl.toJson(), filename: fileName);
+    final wasSaved = await saveJsonFile(vgl.toJson(judgeNicknames: judgeNicknames), filename: fileName);
     if (!context.mounted || !wasSaved) {
       return;
     }
