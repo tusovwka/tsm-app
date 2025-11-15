@@ -223,11 +223,17 @@ class PlayerRepo with ChangeNotifier {
           orElse: () => throw StateError("Player ${localPlayer.nickname} not found in API"),
         );
         
-        if (localPlayer.memberId != apiPlayer.memberId) {
-          final updatedPlayer = localPlayer.copyWith(memberId: apiPlayer.memberId);
+        if (localPlayer.memberId != apiPlayer.memberId ||
+            localPlayer.isJudge != apiPlayer.isJudge ||
+            localPlayer.isHost != apiPlayer.isHost) {
+          final updatedPlayer = localPlayer.copyWith(
+            memberId: apiPlayer.memberId,
+            isJudge: apiPlayer.isJudge,
+            isHost: apiPlayer.isHost,
+          );
           await _box.put(entry.key, updatedPlayer);
           updatedCount++;
-          _log.info("Updated member_id for player ${localPlayer.nickname}: ${apiPlayer.memberId}");
+          _log.info("Updated player ${localPlayer.nickname}: memberId=${apiPlayer.memberId}, isJudge=${apiPlayer.isJudge}, isHost=${apiPlayer.isHost}");
         }
       }
       
@@ -239,6 +245,8 @@ class PlayerRepo with ChangeNotifier {
             nickname: apiPlayer.nickname,
             realName: "", // API не предоставляет реальное имя
             memberId: apiPlayer.memberId,
+            isJudge: apiPlayer.isJudge,
+            isHost: apiPlayer.isHost,
           );
           await add(newPlayer);
           updatedCount++;
@@ -275,6 +283,8 @@ class PlayerRepo with ChangeNotifier {
           nickname: apiPlayer.nickname,
           realName: "", // API не предоставляет реальное имя
           memberId: apiPlayer.memberId,
+          isJudge: apiPlayer.isJudge,
+          isHost: apiPlayer.isHost,
         ),
         const PlayerStats.defaults(),
       ));

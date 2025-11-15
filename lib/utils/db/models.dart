@@ -17,6 +17,12 @@ class Player {
   @HiveField(3, defaultValue: null)
   final int? memberId;
 
+  @HiveField(4, defaultValue: false)
+  final bool isJudge;
+
+  @HiveField(5, defaultValue: false)
+  final bool isHost;
+
   @Deprecated("Left for compatibility. Use PlayerWithStats instead.")
   @HiveField(2, defaultValue: PlayerStats.defaults())
   final PlayerStats stats;
@@ -25,6 +31,8 @@ class Player {
     required this.nickname,
     required this.realName,
     this.memberId,
+    this.isJudge = false,
+    this.isHost = false,
     @Deprecated("Left for compatibility. Use PlayerWithStats instead.")
     this.stats = const PlayerStats.defaults(),
   });
@@ -34,11 +42,15 @@ class Player {
     String? nickname,
     String? realName,
     int? memberId,
+    bool? isJudge,
+    bool? isHost,
   }) =>
       Player(
         nickname: nickname ?? this.nickname,
         realName: realName ?? this.realName,
         memberId: memberId ?? this.memberId,
+        isJudge: isJudge ?? this.isJudge,
+        isHost: isHost ?? this.isHost,
       );
 }
 

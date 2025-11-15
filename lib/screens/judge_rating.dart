@@ -104,12 +104,6 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
     });
   }
 
-  void _selectJudges() {
-    setState(() {
-      _judgesSelected = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<GameController>();
@@ -123,15 +117,16 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Оценка судей"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              _judgesSelected = false;
-            });
-          },
-        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: "Изменить судей",
+            onPressed: () {
+              setState(() {
+                _judgesSelected = false;
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.check),
             tooltip: "Сохранить",
@@ -181,63 +176,226 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
   }
 
   Widget _buildJudgesSelectionScreen(BuildContext context) {
+    return _JudgesSelectionScreen(
+      selectedJudges: _selectedJudges,
+      onJudgesSelected: (judges) {
+        setState(() {
+          _selectedJudges = judges;
+          _judgesSelected = true;
+        });
+      },
+    );
+  }
+}
+
+class _JudgesSelectionScreen extends StatefulWidget {
+  final List<int> selectedJudges;
+  final Function(List<int>) onJudgesSelected;
+
+  const _JudgesSelectionScreen({
+    required this.selectedJudges,
+    required this.onJudgesSelected,
+  });
+
+  @override
+  State<_JudgesSelectionScreen> createState() => _JudgesSelectionScreenState();
+}
+
+class _JudgesSelectionScreenState extends State<_JudgesSelectionScreen> {
+  late List<int> _selectedJudges;
+  String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedJudges = List.from(widget.selectedJudges);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final playersRepo = context.watch<PlayerRepo>();
     final allPlayers = playersRepo.dataWithStats;
-    // Фильтруем только игроков с member_id
-    final playersWithMemberId = allPlayers
-        .where((e) => e.$2.player.memberId != null)
+    // Фильтруем только судей (игроков с member_id и is_judge = true)
+    final judgesWithMemberId = allPlayers
+        .where((e) => e.$2.player.memberId != null && e.$2.player.isJudge)
         .toList();
-    
+
+    // Применяем фильтр поиска
+    final filteredJudges = _searchQuery.isEmpty
+        ? judgesWithMemberId
+        : judgesWithMemberId.where((e) {
+            final player = e.$2.player;
+            final query = _searchQuery.toLowerCase();
+            return player.nickname.toLowerCase().contains(query) ||
+                player.realName.toLowerCase().contains(query);
+          }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Выбор судей"),
-      ),
-      body: playersWithMemberId.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  "В базе нет игроков с member_id.\nДобавьте игроков через API.",
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : ListView.builder(
-              itemCount: playersWithMemberId.length,
-              padding: const EdgeInsets.all(8),
-              itemBuilder: (context, index) {
-                final (id, playerWithStats) = playersWithMemberId[index];
-                final player = playerWithStats.player;
-                final memberId = player.memberId!;
-                final isSelected = _selectedJudges.contains(memberId);
-                
-                return CheckboxListTile(
-                  title: Text(player.nickname),
-                  subtitle: player.realName.isNotEmpty 
-                      ? Text(player.realName) 
-                      : null,
-                  value: isSelected,
-                  onChanged: (value) {
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: _JudgeSearchDelegate(
+                  judgesWithMemberId,
+                  _selectedJudges,
+                  (judges) {
                     setState(() {
-                      if (value == true) {
-                        if (!_selectedJudges.contains(memberId)) {
-                          _selectedJudges.add(memberId);
-                        }
-                      } else {
-                        _selectedJudges.remove(memberId);
-                      }
+                      _selectedJudges = judges;
                     });
                   },
-                );
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: "Поиск судей...",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
               },
             ),
+          ),
+          Expanded(
+            child: judgesWithMemberId.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        "В базе нет судей.\nДобавьте игроков через API.",
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                : filteredJudges.isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            "Судьи не найдены",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: filteredJudges.length,
+                        padding: const EdgeInsets.all(8),
+                        itemBuilder: (context, index) {
+                          final (id, playerWithStats) = filteredJudges[index];
+                          final player = playerWithStats.player;
+                          final memberId = player.memberId!;
+                          final isSelected = _selectedJudges.contains(memberId);
+
+                          return CheckboxListTile(
+                            title: Text(player.nickname),
+                            subtitle: player.realName.isNotEmpty
+                                ? Text(player.realName)
+                                : null,
+                            value: isSelected,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  if (!_selectedJudges.contains(memberId)) {
+                                    _selectedJudges.add(memberId);
+                                  }
+                                } else {
+                                  _selectedJudges.remove(memberId);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
       floatingActionButton: _selectedJudges.isNotEmpty
           ? FloatingActionButton.extended(
-              onPressed: _selectJudges,
+              onPressed: () => widget.onJudgesSelected(_selectedJudges),
               icon: const Icon(Icons.check),
               label: Text("Выбрано: ${_selectedJudges.length}"),
             )
           : null,
+    );
+  }
+}
+
+class _JudgeSearchDelegate extends SearchDelegate<void> {
+  final List<(String, db_models.PlayerWithStats)> judges;
+  final List<int> selectedJudges;
+  final Function(List<int>) onSelectionChanged;
+
+  _JudgeSearchDelegate(
+    this.judges,
+    this.selectedJudges,
+    this.onSelectionChanged,
+  ) : super(searchFieldLabel: "Поиск судей");
+
+  List<(String, db_models.PlayerWithStats)> get filteredJudges => judges.where((e) {
+        final player = e.$2.player;
+        final q = query.toLowerCase();
+        return player.nickname.toLowerCase().contains(q) ||
+            player.realName.toLowerCase().contains(q);
+      }).toList();
+
+  @override
+  List<Widget>? buildActions(BuildContext context) => [
+        IconButton(
+          onPressed: () => query = "",
+          icon: const Icon(Icons.clear),
+        ),
+      ];
+
+  @override
+  Widget? buildLeading(BuildContext context) => const BackButton();
+
+  @override
+  Widget buildResults(BuildContext context) => buildSuggestions(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final results = filteredJudges;
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final (id, playerWithStats) = results[index];
+        final player = playerWithStats.player;
+        final memberId = player.memberId!;
+        final isSelected = selectedJudges.contains(memberId);
+
+        return CheckboxListTile(
+          title: Text(player.nickname),
+          subtitle:
+              player.realName.isNotEmpty ? Text(player.realName) : null,
+          value: isSelected,
+          onChanged: (value) {
+            final newSelection = List<int>.from(selectedJudges);
+            if (value == true) {
+              if (!newSelection.contains(memberId)) {
+                newSelection.add(memberId);
+              }
+            } else {
+              newSelection.remove(memberId);
+            }
+            onSelectionChanged(newSelection);
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
   

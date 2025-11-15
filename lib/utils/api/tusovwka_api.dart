@@ -20,10 +20,14 @@ class TusovwkaApiException implements Exception {
 class TusovwkaPlayer {
   final int memberId;
   final String nickname;
+  final bool isJudge;
+  final bool isHost;
 
   const TusovwkaPlayer({
     required this.memberId,
     required this.nickname,
+    this.isJudge = false,
+    this.isHost = false,
   });
 
   factory TusovwkaPlayer.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,8 @@ class TusovwkaPlayer {
     return TusovwkaPlayer(
       memberId: json["member_id"] as int,
       nickname: nickname,
+      isJudge: json["is_judge"] as bool? ?? false,
+      isHost: json["is_host"] as bool? ?? false,
     );
   }
 
@@ -54,10 +60,12 @@ class TusovwkaPlayer {
       other is TusovwkaPlayer &&
           runtimeType == other.runtimeType &&
           memberId == other.memberId &&
-          nickname == other.nickname;
+          nickname == other.nickname &&
+          isJudge == other.isJudge &&
+          isHost == other.isHost;
 
   @override
-  int get hashCode => Object.hash(memberId, nickname);
+  int get hashCode => Object.hash(memberId, nickname, isJudge, isHost);
 }
 
 class TusovwkaApiClient {
