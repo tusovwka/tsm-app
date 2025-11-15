@@ -78,6 +78,14 @@ class GameController with ChangeNotifier {
     _judgeRatings = value;
   }
 
+  List<int>? _judges;
+
+  List<int>? get judges => _judges;
+
+  set judges(List<int>? value) {
+    _judges = value;
+  }
+
   Map<int, double>? _bestTurnCi;
 
   Map<int, double>? get bestTurnCi => _bestTurnCi;
@@ -174,6 +182,7 @@ class GameController with ChangeNotifier {
     _gameType = gameLogWithPlayers.gameType;
     _gameImportance = gameLogWithPlayers.gameImportance;
     _judgeRatings = gameLogWithPlayers.judgeRatings;
+    _judges = gameLogWithPlayers.judges;
     _bestTurnCi = gameLogWithPlayers.bestTurnCi;
     _gameStartTime = gameLogWithPlayers.gameStartTime;
     _gameFinishTime = gameLogWithPlayers.gameFinishTime;
@@ -191,6 +200,7 @@ class GameController with ChangeNotifier {
     _gameType = null;
     _gameImportance = null;
     _judgeRatings = null;
+    _judges = null;
     _bestTurnCi = null;
     _gameStartTime = null;
     _gameFinishTime = null;

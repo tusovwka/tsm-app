@@ -72,6 +72,7 @@ class GameLogWithPlayers {
     this.gameType,
     this.gameImportance,
     this.judgeRatings,
+    this.judges,
     this.bestTurnCi,
     this.winningTeam,
     this.gameStartTime,
@@ -109,6 +110,9 @@ class GameLogWithPlayers {
                 .toList()
             : null,
         judgeRatings: _extractJudgeRatings(json["players"]),
+        judges: json["judges"] != null 
+            ? (json["judges"] as List<dynamic>).cast<int>().toList()
+            : null,
         bestTurnCi: _extractBestTurnCi(json["players"]),
       );
     }
@@ -162,6 +166,7 @@ class GameLogWithPlayers {
   final GameType? gameType;
   final double? gameImportance;
   final Map<int, double>? judgeRatings;
+  final List<int>? judges;
   final Map<int, double>? bestTurnCi;
   final RoleTeam? winningTeam;
   final DateTime? gameStartTime;
@@ -219,6 +224,11 @@ class GameLogWithPlayers {
             "end": t.end.toIso8601String(),
           }).toList(),
       };
+    }
+    
+    // Добавляем judges в корневой объект, если есть
+    if (judges != null && judges!.isNotEmpty) {
+      result["judges"] = judges!;
     }
     
     return result;

@@ -80,6 +80,7 @@ class BottomGameStateWidget extends StatelessWidget {
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
         judgeRatings: controller.judgeRatings,
+        judges: controller.judges,
         bestTurnCi: controller.bestTurnCi,
         winningTeam: controller.winningTeam,
         gameStartTime: controller.gameStartTime,
@@ -117,6 +118,7 @@ class BottomGameStateWidget extends StatelessWidget {
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
         judgeRatings: controller.judgeRatings,
+        judges: controller.judges,
         bestTurnCi: controller.bestTurnCi,
         winningTeam: controller.winningTeam,
         gameStartTime: controller.gameStartTime,
@@ -133,9 +135,14 @@ class BottomGameStateWidget extends StatelessWidget {
   }
 
   Future<void> _onJudgeRatingPressed(BuildContext context, GameController controller) async {
-    final ratings = await openJudgeRatingPage(context, initialRatings: controller.judgeRatings);
-    if (ratings != null) {
-      controller.judgeRatings = ratings;
+    final result = await openJudgeRatingPage(
+      context, 
+      initialRatings: controller.judgeRatings,
+      initialJudges: controller.judges,
+    );
+    if (result != null) {
+      controller.judgeRatings = result.ratings;
+      controller.judges = result.judges;
     }
   }
 

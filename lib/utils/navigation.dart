@@ -47,9 +47,25 @@ Future<void> openSeatRandomizerPage(BuildContext context) =>
 
 Future<void> openTimeoutPage(BuildContext context) => openPage(context, const TimeoutScreen());
 
-Future<Map<int, double>?> openJudgeRatingPage(BuildContext context, {Map<int, double>? initialRatings}) async {
-  return await Navigator.of(context).push<Map<int, double>>(
-    MaterialPageRoute(builder: (context) => JudgeRatingScreen(initialRatings: initialRatings)),
+class JudgeRatingResult {
+  final Map<int, double> ratings;
+  final List<int> judges;
+
+  JudgeRatingResult({required this.ratings, required this.judges});
+}
+
+Future<JudgeRatingResult?> openJudgeRatingPage(
+  BuildContext context, {
+  Map<int, double>? initialRatings,
+  List<int>? initialJudges,
+}) async {
+  return await Navigator.of(context).push<JudgeRatingResult>(
+    MaterialPageRoute(
+      builder: (context) => JudgeRatingScreen(
+        initialRatings: initialRatings,
+        initialJudges: initialJudges,
+      ),
+    ),
   );
 }
 

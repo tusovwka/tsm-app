@@ -227,6 +227,7 @@ class GameLogScreen extends StatelessWidget {
         gameType: controller.gameType,
         gameImportance: controller.gameImportance,
         judgeRatings: controller.judgeRatings,
+        judges: controller.judges,
         bestTurnCi: controller.bestTurnCi,
         winningTeam: controller.winningTeam,
         gameStartTime: controller.gameStartTime,
