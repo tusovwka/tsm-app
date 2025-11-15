@@ -35,10 +35,11 @@ enum _LegacyGameLogVersion {
 
 enum GameLogVersion implements Comparable<GameLogVersion> {
   v0(0, isDeprecated: true),
-  v2(2),
+  v2(2, isDeprecated: true),
+  v3(3),
   ;
 
-  static const latest = v2;
+  static const latest = v3;
 
   final int value;
   final bool isDeprecated;
@@ -87,8 +88,39 @@ class GameLogWithPlayers {
           .toUnmodifiableList();
 
   factory GameLogWithPlayers.fromJson(dynamic json, {required GameLogVersion version}) {
+    if (version >= GameLogVersion.v3) {
+      // v3 формат: log и game на верхнем уровне, players и judges внутри game
+      final gameData = json["game"] as Map<String, dynamic>?;
+      final playersJson = gameData?["players"] as List<dynamic>? ?? json["players"] as List<dynamic>?;
+      
+      return GameLogWithPlayers(
+        log: (json["log"] as List<dynamic>)
+            .parseJsonList((e) => gameLogFromJson(e, version: version)),
+        players: playersJson != null
+            ? playersJson.parseJsonList((e) => playerFromJson(e, version: version))
+            : const [],
+        gameType: gameData?["type"] != null ? GameType.byName(gameData!["type"] as String) : null,
+        gameImportance: gameData?["importance"] as double?,
+        winningTeam: gameData?["winners"] != null ? RoleTeam.byName(gameData!["winners"] as String) : null,
+        gameStartTime: gameData?["start"] != null ? DateTime.parse(gameData!["start"] as String) : null,
+        gameFinishTime: gameData?["finish"] != null ? DateTime.parse(gameData!["finish"] as String) : null,
+        timeouts: gameData?["timeouts"] != null 
+            ? (gameData!["timeouts"] as List<dynamic>)
+                .map((t) => (
+                  start: DateTime.parse(t["start"] as String),
+                  end: DateTime.parse(t["end"] as String),
+                ))
+                .toList()
+            : null,
+        judgeRatings: playersJson != null ? _extractJudgeRatings(playersJson) : null,
+        judges: gameData?["judges"] != null 
+            ? (gameData!["judges"] as List<dynamic>).cast<int>().toList()
+            : null,
+        bestTurnCi: playersJson != null ? _extractBestTurnCi(playersJson) : null,
+      );
+    }
     if (json is Map<String, dynamic>) {
-      // Новый формат с объектом game
+      // v2 формат: log, game, players на верхнем уровне
       final gameData = json["game"] as Map<String, dynamic>?;
       
       return GameLogWithPlayers(
@@ -173,7 +205,7 @@ class GameLogWithPlayers {
   final DateTime? gameFinishTime;
   final List<({DateTime start, DateTime end})>? timeouts;
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson({GameLogVersion version = GameLogVersion.latest}) {
     // Собираем информацию об удалениях из лога
     final kickedPlayers = <int>{};
     final ppkPlayers = <int>{};  // ППК - победа другой команды
@@ -187,51 +219,84 @@ class GameLogWithPlayers {
       }
     }
     
-    final result = <String, dynamic>{
-      "log": log.map((e) => e.toJson()).toList(),
-      "players": players.map((player) {
-        var rating = judgeRatings?[player.number];
-        
-        // Устанавливаем дефолтные оценки, если не заданы
-        if (rating == null || rating == 0) {
-          if (ppkPlayers.contains(player.number)) {
-            rating = -2.5;  // ППК - победа другой команды
-          } else if (kickedPlayers.contains(player.number)) {
-            rating = 1.5;   // Удален, но не ППК
-          } else {
-            rating = 2.5;   // Обычная оценка
-          }
+    final playersJson = players.map((player) {
+      var rating = judgeRatings?[player.number];
+      
+      // Устанавливаем дефолтные оценки, если не заданы
+      if (rating == null || rating == 0) {
+        if (ppkPlayers.contains(player.number)) {
+          rating = -2.5;  // ППК - победа другой команды
+        } else if (kickedPlayers.contains(player.number)) {
+          rating = 1.5;   // Удален, но не ППК
+        } else {
+          rating = 2.5;   // Обычная оценка
         }
-        
-        final ci = bestTurnCi?[player.number];
-        
-        return player.toJson(judgeRating: rating, bestTurnCi: ci);
-      }).toList(),
-    };
+      }
+      
+      final ci = bestTurnCi?[player.number];
+      
+      return player.toJson(judgeRating: rating, bestTurnCi: ci);
+    }).toList();
     
-    // Добавляем объект game если есть хотя бы одно поле
-    if (gameType != null || gameImportance != null || winningTeam != null || 
-        gameStartTime != null || gameFinishTime != null || (timeouts != null && timeouts!.isNotEmpty)) {
-      result["game"] = {
-        if (gameType != null) "type": gameType!.name,
-        if (gameImportance != null) "importance": gameImportance,
-        if (winningTeam != null) "winners": winningTeam!.name,
-        if (gameStartTime != null) "start": gameStartTime!.toIso8601String(),
-        if (gameFinishTime != null) "finish": gameFinishTime!.toIso8601String(),
-        if (timeouts != null && timeouts!.isNotEmpty) 
-          "timeouts": timeouts!.map((t) => {
-            "start": t.start.toIso8601String(),
-            "end": t.end.toIso8601String(),
-          }).toList(),
+    if (version >= GameLogVersion.v3) {
+      // v3 формат: log и game на верхнем уровне, players и judges внутри game
+      final result = <String, dynamic>{
+        "log": log.map((e) => e.toJson()).toList(),
       };
+      
+      // Создаем объект game со всеми полями
+      final gameObj = <String, dynamic>{
+        "players": playersJson,
+      };
+      
+      if (gameType != null) gameObj["type"] = gameType!.name;
+      if (gameImportance != null) gameObj["importance"] = gameImportance;
+      if (winningTeam != null) gameObj["winners"] = winningTeam!.name;
+      if (gameStartTime != null) gameObj["start"] = gameStartTime!.toIso8601String();
+      if (gameFinishTime != null) gameObj["finish"] = gameFinishTime!.toIso8601String();
+      if (timeouts != null && timeouts!.isNotEmpty) {
+        gameObj["timeouts"] = timeouts!.map((t) => {
+          "start": t.start.toIso8601String(),
+          "end": t.end.toIso8601String(),
+        }).toList();
+      }
+      if (judges != null && judges!.isNotEmpty) {
+        gameObj["judges"] = judges!;
+      }
+      
+      result["game"] = gameObj;
+      return result;
+    } else {
+      // v2 формат: log, game, players на верхнем уровне
+      final result = <String, dynamic>{
+        "log": log.map((e) => e.toJson()).toList(),
+        "players": playersJson,
+      };
+      
+      // Добавляем объект game если есть хотя бы одно поле
+      if (gameType != null || gameImportance != null || winningTeam != null || 
+          gameStartTime != null || gameFinishTime != null || (timeouts != null && timeouts!.isNotEmpty)) {
+        result["game"] = {
+          if (gameType != null) "type": gameType!.name,
+          if (gameImportance != null) "importance": gameImportance,
+          if (winningTeam != null) "winners": winningTeam!.name,
+          if (gameStartTime != null) "start": gameStartTime!.toIso8601String(),
+          if (gameFinishTime != null) "finish": gameFinishTime!.toIso8601String(),
+          if (timeouts != null && timeouts!.isNotEmpty) 
+            "timeouts": timeouts!.map((t) => {
+              "start": t.start.toIso8601String(),
+              "end": t.end.toIso8601String(),
+            }).toList(),
+        };
+      }
+      
+      // Добавляем judges в корневой объект, если есть
+      if (judges != null && judges!.isNotEmpty) {
+        result["judges"] = judges!;
+      }
+      
+      return result;
     }
-    
-    // Добавляем judges в корневой объект, если есть
-    if (judges != null && judges!.isNotEmpty) {
-      result["judges"] = judges!;
-    }
-    
-    return result;
   }
 }
 
@@ -248,7 +313,16 @@ class VersionedGameLog extends Versioned<GameLogVersion, GameLogWithPlayers> {
   dynamic versionToJson(GameLogVersion value) => value.value;
 
   @override
-  dynamic valueToJson(GameLogWithPlayers value) => value.toJson();
+  Map<String, dynamic> toJson() {
+    final valueJson = value.toJson(version: version);
+    return {
+      "version": versionToJson.call(version),
+      ...valueJson, // Разворачиваем все поля напрямую (log, game и т.д.)
+    };
+  }
+
+  @override
+  dynamic valueToJson(GameLogWithPlayers value) => value.toJson(version: version);
 
   static GameLogVersion _versionFromJson(dynamic value) {
     final versionInt = value as int;
@@ -282,16 +356,13 @@ class VersionedGameLog extends Versioned<GameLogVersion, GameLogWithPlayers> {
       );
     }
     if (json is Map<String, dynamic>) {
-      return Versioned.fromJsonImpl(
-        json,
-        valueKey: "log",
-        versionFromJson: _versionFromJson,
-        valueFromJson: (json, version) => switch (version) {
-          GameLogVersion.v0 => throw AssertionError("already handled"),
-          GameLogVersion.v2 => GameLogWithPlayers.fromJson(json, version: version),
-        },
-        create: VersionedGameLog.new,
-      );
+      // Для v3 структура изменилась - передаем весь json, а не только json[valueKey]
+      final version = _versionFromJson(json["version"]);
+      final value = switch (version) {
+        GameLogVersion.v0 => throw AssertionError("already handled"),
+        GameLogVersion.v2 || GameLogVersion.v3 => GameLogWithPlayers.fromJson(json, version: version),
+      };
+      return VersionedGameLog(value, version: version);
     }
     throw ArgumentError.value(
       json,
