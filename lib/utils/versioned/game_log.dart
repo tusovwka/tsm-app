@@ -278,16 +278,15 @@ class GameLogWithPlayers {
           "end": t.end.toIso8601String(),
         }).toList();
       }
-      if (judges != null && judges!.isNotEmpty) {
-        // Формируем массив объектов с member_id и nickname
-        gameObj["judges"] = judges!.map((memberId) {
-          final nickname = judgeNicknames?[memberId] ?? "Unknown";
-          return {
-            "member_id": memberId,
-            "nickname": nickname,
-          };
-        }).toList();
-      }
+      // Поле judges всегда присутствует, даже если судей нет
+      final judgesList = judges ?? [];
+      gameObj["judges"] = judgesList.map((memberId) {
+        final nickname = judgeNicknames?[memberId] ?? "Unknown";
+        return {
+          "member_id": memberId,
+          "nickname": nickname,
+        };
+      }).toList();
       
       result["game"] = gameObj;
       return result;
@@ -315,17 +314,15 @@ class GameLogWithPlayers {
         };
       }
       
-        // Добавляем judges в корневой объект, если есть
-        if (judges != null && judges!.isNotEmpty) {
-          // Для v2 сохраняем как массив объектов с member_id и nickname
-          result["judges"] = judges!.map((memberId) {
-            final nickname = judgeNicknames?[memberId] ?? "Unknown";
-            return {
-              "member_id": memberId,
-              "nickname": nickname,
-            };
-          }).toList();
-        }
+      // Поле judges всегда присутствует, даже если судей нет
+      final judgesList = judges ?? [];
+      result["judges"] = judgesList.map((memberId) {
+        final nickname = judgeNicknames?[memberId] ?? "Unknown";
+        return {
+          "member_id": memberId,
+          "nickname": nickname,
+        };
+      }).toList();
       
       return result;
     }
