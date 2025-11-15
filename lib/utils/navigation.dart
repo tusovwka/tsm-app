@@ -48,10 +48,10 @@ Future<void> openSeatRandomizerPage(BuildContext context) =>
 Future<void> openTimeoutPage(BuildContext context) => openPage(context, const TimeoutScreen());
 
 class JudgeRatingResult {
-  final Map<int, double> ratings;
-  final List<int> judges;
+  final Map<int, double>? ratings; // null означает использовать дефолтные оценки
+  final List<int> judges; // пустой список означает отсутствие судей
 
-  JudgeRatingResult({required this.ratings, required this.judges});
+  JudgeRatingResult({this.ratings, required this.judges});
 }
 
 Future<JudgeRatingResult?> openJudgeRatingPage(

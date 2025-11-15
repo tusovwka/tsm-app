@@ -131,16 +131,11 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
             icon: const Icon(Icons.check),
             tooltip: "Сохранить",
             onPressed: () {
-              if (_selectedJudges.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Необходимо выбрать хотя бы одного судью")),
-                );
-                return;
-              }
+              // Разрешаем сохранение с пустым списком судей (оценки будут дефолтные)
               Navigator.pop(
                 context, 
                 JudgeRatingResult(
-                  ratings: _ratings,
+                  ratings: _selectedJudges.isEmpty ? null : _ratings, // Если нет судей - используем дефолтные оценки
                   judges: _selectedJudges,
                 ),
               );
@@ -183,6 +178,16 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
           _selectedJudges = judges;
           _judgesSelected = true;
         });
+      },
+      onReset: () {
+        // Сбрасываем судей и оценки к дефолтным
+        Navigator.pop(
+          context,
+          JudgeRatingResult(
+            ratings: null, // null означает использовать дефолтные оценки
+            judges: [], // пустой список означает отсутствие судей
+          ),
+        );
       },
     );
   }
@@ -354,10 +359,12 @@ class _JudgeRatingScreenState extends State<JudgeRatingScreen> {
 class _JudgesSelectionScreen extends StatefulWidget {
   final List<int> selectedJudges;
   final Function(List<int>) onJudgesSelected;
+  final VoidCallback onReset;
 
   const _JudgesSelectionScreen({
     required this.selectedJudges,
     required this.onJudgesSelected,
+    required this.onReset,
   });
 
   @override
@@ -397,6 +404,11 @@ class _JudgesSelectionScreenState extends State<_JudgesSelectionScreen> {
       appBar: AppBar(
         title: const Text("Выбор судей"),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.clear),
+            tooltip: "Сбросить судей и оценки",
+            onPressed: widget.onReset,
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {

@@ -174,8 +174,8 @@ class BottomGameStateWidget extends StatelessWidget {
       initialJudges: controller.judges,
     );
     if (result != null) {
-      controller.judgeRatings = result.ratings;
-      controller.judges = result.judges;
+      controller.judgeRatings = result.ratings; // null означает дефолтные оценки
+      controller.judges = result.judges.isEmpty ? null : result.judges; // пустой список означает null
     }
   }
 
