@@ -7,6 +7,7 @@ import "package:provider/provider.dart";
 import "../game/log.dart";
 import "../game/states.dart";
 import "../utils/bug_report/stub.dart";
+import "../utils/db/repo.dart";
 import "../utils/errors.dart";
 import "../utils/extensions.dart";
 import "../utils/game_controller.dart";
