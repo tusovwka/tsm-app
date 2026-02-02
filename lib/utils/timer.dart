@@ -95,8 +95,13 @@ class TimerService with ChangeNotifier {
       TimerType.shortened => timeLimitsShortened[gameState.stage] ?? timeLimits[gameState.stage],
     };
     
-    if (gameState is GameStateSpeaking && gameState.hasHalfTime && timeLimit != null) {
-      timeLimit ~/= 2;
+    if (gameState is GameStateSpeaking) {
+      // Раньше «выставление кандидатуры» (3 фола, >4 игроков) — только здесь 30 секунд
+      if (gameState.canOnlyAccuse && !gameState.hasHalfTime) {
+        timeLimit = const Duration(seconds: 30);
+      } else if (gameState.hasHalfTime && timeLimit != null) {
+        timeLimit ~/= 2;
+      }
     }
     return timeLimit;
   }

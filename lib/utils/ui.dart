@@ -49,7 +49,7 @@ extension GameStatePrettyString on BaseGameState {
           :final hasHalfTime,
         ):
         if (canOnlyAccuse && !hasHalfTime) {
-          return "Кандидатура от игрока $currentPlayerNumber";
+          return "Речь 30 секунд игрока $currentPlayerNumber";
         }
         return "Речь игрока $currentPlayerNumber";
       case GameStateWithPlayers(stage: GameStage.preVoting):
